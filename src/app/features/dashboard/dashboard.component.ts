@@ -7,7 +7,7 @@ import { switchMap } from 'rxjs/operators';
 import { Chart, registerables } from 'chart.js';
 import { MonedaPipe } from '../../shared/pipes/moneda.pipe';
 import { FechaPipe } from '../../shared/pipes/fecha.pipe';
-import { environment } from '../../environments/environment';
+import { environment } from '../../../environments/environment';
 
 Chart.register(...registerables);
 
