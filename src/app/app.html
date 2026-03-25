@@ -14,10 +14,7 @@
     <div class="menu-overlay" *ngIf="menuOpen" (click)="closeMenu()"></div>
     
     <div class="nav-menu" [class.open]="menuOpen">
-      <!-- Botón de cierre dentro del menú (opcional) -->
-      <button class="menu-close-btn" (click)="closeMenu()">
-        <i class="fas fa-times"></i>
-      </button>
+      <!-- Botón de cierre eliminado -->
       
       <a routerLink="/dashboard" routerLinkActive="active" class="nav-item" (click)="closeMenu()">
         <i class="fas fa-chart-pie"></i> Dashboard
