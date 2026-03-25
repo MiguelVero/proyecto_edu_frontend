@@ -22,7 +22,14 @@ export class ImagenPipe implements PipeTransform {
     }
     
     // Construir URL completa al backend
-    const baseUrl = `${environment.apiUrl}`;
-    return `${baseUrl}${value}`;
+    const baseUrl = environment.apiUrl.replace('/api', '');
+    const fullUrl = `${baseUrl}${value}`;
+    
+    // Log para debug (solo en desarrollo)
+    if (!environment.production) {
+      console.log('🖼️ Imagen pipe:', { original: value, fullUrl });
+    }
+    
+    return fullUrl;
   }
 }
