@@ -5,7 +5,7 @@ import { catchError, retry, timeout } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { MonitorService } from '../services/monitor.service';
-import { environment } from '../../environments/environment'; // <-- IMPORTAR AQUÍ
+import { environment } from '../../../environments/environment'; // <-- IMPORTAR AQUÍ
 import Swal from 'sweetalert2';
 
 @Injectable()

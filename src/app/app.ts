@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { HttpClient } from '@angular/common/http'; // <-- Agregar HttpClient
 import { AuthService } from './core/services/auth.service';
-import { environment } from './environments/environment'; // <-- Agregar environment
+import { environment } from '../environments/environment'; // <-- Agregar environment
 
 @Component({
   selector: 'app-root',
