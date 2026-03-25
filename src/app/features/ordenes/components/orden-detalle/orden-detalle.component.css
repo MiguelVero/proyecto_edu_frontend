@@ -488,3 +488,176 @@
   background: #d97706;
   transform: translateY(-2px);
 }
+/* Responsive para Detalle de Orden */
+@media (max-width: 768px) {
+  .detalle-container {
+    padding: 12px;
+  }
+
+  .header {
+    margin-bottom: 20px;
+  }
+
+  .header h1 {
+    font-size: 1.5rem;
+  }
+
+  .btn-secondary {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+  }
+
+  .info-card {
+    padding: 20px;
+  }
+
+  .card-header {
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+
+  .doctor-info {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+
+  .doctor-logo {
+    width: 70px;
+    height: 70px;
+  }
+
+  .doctor-info h2 {
+    font-size: 1.3rem;
+  }
+
+  .estado {
+    align-self: flex-start;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+    padding: 15px;
+  }
+
+  .info-item {
+    text-align: center;
+  }
+
+  .value {
+    font-size: 1rem;
+  }
+
+  .montos-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .monto-item {
+    padding: 15px;
+  }
+
+  .monto-item .cantidad {
+    font-size: 1.5rem;
+  }
+
+  .pago-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .pago-info {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .pago-fecha {
+    min-width: auto;
+    font-size: 0.8rem;
+  }
+
+  .pago-monto {
+    min-width: auto;
+    font-size: 1rem;
+  }
+
+  .pago-metodo {
+    font-size: 0.8rem;
+  }
+
+  .pago-actions {
+    align-self: flex-end;
+  }
+
+  .acciones {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .acciones button {
+    flex: 1;
+    justify-content: center;
+    padding: 10px 16px;
+    font-size: 0.85rem;
+  }
+
+  .cliente-section {
+    padding: 15px;
+  }
+
+  .btn-add-pago {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .detalle-container {
+    padding: 8px;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .header h1 {
+    text-align: center;
+  }
+
+  .btn-secondary {
+    justify-content: center;
+  }
+
+  .info-card {
+    padding: 15px;
+  }
+
+  .doctor-info h2 {
+    font-size: 1.2rem;
+  }
+
+  .servicio {
+    font-size: 0.9rem;
+  }
+
+  .montos-section h3,
+  .pagos-section h3,
+  .cliente-section h3 {
+    font-size: 1.1rem;
+  }
+
+  .pago-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+
+  .acciones button {
+    width: 100%;
+  }
+}

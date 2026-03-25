@@ -288,3 +288,180 @@
   .orden-total { grid-area: total; text-align: right; }
   .orden-estado { grid-area: estado; justify-self: end; }
 }
+/* Responsive para Detalle del Doctor */
+@media (max-width: 768px) {
+  .detalle-container {
+    padding: 12px;
+  }
+
+  .header {
+    margin-bottom: 20px;
+  }
+
+  .header h1 {
+    font-size: 1.5rem;
+  }
+
+  .btn-secondary {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+  }
+
+  .info-card {
+    padding: 20px;
+  }
+
+  .doctor-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 20px;
+    margin-bottom: 25px;
+  }
+
+  .doctor-logo-large {
+    width: 100px;
+    height: 100px;
+  }
+
+  .doctor-titulo h2 {
+    font-size: 1.5rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 25px;
+  }
+
+  .stat-item {
+    padding: 15px;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+  }
+
+  .info-row {
+    padding: 12px;
+    margin-bottom: 15px;
+  }
+
+  .notas h3 {
+    font-size: 1.1rem;
+  }
+
+  .acciones {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .acciones button {
+    width: 100%;
+    justify-content: center;
+    padding: 12px;
+  }
+
+  .ordenes-section {
+    padding: 20px;
+  }
+
+  .ordenes-section h3 {
+    font-size: 1.2rem;
+  }
+
+  .orden-item {
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas: 
+      "fecha estado estado"
+      "servicio servicio total";
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .orden-fecha {
+    grid-area: fecha;
+    font-size: 0.8rem;
+  }
+
+  .orden-servicio {
+    grid-area: servicio;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .orden-total {
+    grid-area: total;
+    text-align: right;
+  }
+
+  .orden-estado {
+    grid-area: estado;
+    justify-self: end;
+    padding: 3px 10px;
+    font-size: 0.75rem;
+    min-width: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .detalle-container {
+    padding: 8px;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .header h1 {
+    text-align: center;
+    font-size: 1.3rem;
+  }
+
+  .btn-secondary {
+    justify-content: center;
+  }
+
+  .info-card {
+    padding: 15px;
+  }
+
+  .doctor-logo-large {
+    width: 80px;
+    height: 80px;
+  }
+
+  .doctor-titulo h2 {
+    font-size: 1.3rem;
+  }
+
+  .doctor-titulo p {
+    font-size: 0.9rem;
+  }
+
+  .stat-label {
+    font-size: 0.8rem;
+  }
+
+  .stat-value {
+    font-size: 1.2rem;
+  }
+
+  .ordenes-section {
+    padding: 15px;
+  }
+
+  .orden-item {
+    gap: 8px;
+  }
+
+  .orden-servicio {
+    font-size: 0.85rem;
+  }
+
+  .orden-total {
+    font-size: 0.9rem;
+  }
+}

@@ -1,9 +1,9 @@
-import { Component, OnInit } from '@angular/core'; // <-- Agregar OnInit
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
-import { HttpClient } from '@angular/common/http'; // <-- Agregar HttpClient
+import { HttpClient } from '@angular/common/http';
 import { AuthService } from './core/services/auth.service';
-import { environment } from '../environments/environment'; // <-- Agregar environment
+import { environment } from '../environments/environment';
 
 @Component({
   selector: 'app-root',
@@ -17,26 +17,25 @@ import { environment } from '../environments/environment'; // <-- Agregar enviro
   templateUrl: './app.html',
   styleUrls: ['./app.css']
 })
-export class AppComponent implements OnInit { // <-- Agregar OnInit
+export class AppComponent implements OnInit {
   title = 'frontend';
   currentTheme: string = 'dark';
+  menuOpen: boolean = false;
   
   constructor(
     public authService: AuthService,
-    private http: HttpClient // <-- Agregar HttpClient
+    private http: HttpClient
   ) {
     this.currentTheme = localStorage.getItem('theme') || 'dark';
     document.body.setAttribute('data-theme', this.currentTheme);
   }
 
-  // ✅ NUEVO: Verificar token al iniciar
   ngOnInit() {
     if (this.authService.isAuthenticated()) {
       this.verificarToken();
     }
   }
 
-  // ✅ NUEVO: Método para verificar token
   verificarToken() {
     this.http.get(`${environment.apiUrl}/auth/verificar`).subscribe({
       next: (response: any) => {
@@ -55,6 +54,29 @@ export class AppComponent implements OnInit { // <-- Agregar OnInit
     document.body.setAttribute('data-theme', this.currentTheme);
     localStorage.setItem('theme', this.currentTheme);
   }
+
+ toggleMenu() {
+  this.menuOpen = !this.menuOpen;
+  if (this.menuOpen) {
+    document.body.classList.add('menu-open');
+  } else {
+    document.body.classList.remove('menu-open');
+  }
+}
+
+
+  closeMenu() {
+  this.menuOpen = false;
+  document.body.classList.remove('menu-open');
+}
+
+@HostListener('window:resize', ['$event'])
+onResize() {
+  if (window.innerWidth > 768) {
+    this.menuOpen = false;
+    document.body.classList.remove('menu-open');
+  }
+}
 
   get isDarkTheme(): boolean {
     return this.currentTheme === 'dark';

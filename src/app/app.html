@@ -4,28 +4,36 @@
     <a routerLink="/dashboard" class="nav-brand">
       <i class="fas fa-microchip"></i> LabTrack Pro
     </a>
-    <div class="nav-menu">
-      <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
+    
+    <!-- Botón hamburguesa para móvil -->
+    <button class="menu-toggle" (click)="toggleMenu()" [class.active]="menuOpen">
+      <i class="fas" [ngClass]="{'fa-bars': !menuOpen, 'fa-times': menuOpen}"></i>
+    </button>
+    
+    <div class="nav-menu" [class.open]="menuOpen">
+      <a routerLink="/dashboard" routerLinkActive="active" class="nav-item" (click)="closeMenu()">
         <i class="fas fa-chart-pie"></i> Dashboard
       </a>
-      <a routerLink="/ordenes" routerLinkActive="active" class="nav-item">
+      <a routerLink="/ordenes" routerLinkActive="active" class="nav-item" (click)="closeMenu()">
         <i class="fas fa-clipboard-list"></i> Órdenes
       </a>
-      <a routerLink="/doctores" routerLinkActive="active" class="nav-item">
+      <a routerLink="/doctores" routerLinkActive="active" class="nav-item" (click)="closeMenu()">
         <i class="fas fa-user-doctor"></i> Doctores
       </a>
-      <a routerLink="/servicios" routerLinkActive="active" class="nav-item">
+      <a routerLink="/servicios" routerLinkActive="active" class="nav-item" (click)="closeMenu()">
         <i class="fas fa-tooth"></i> Servicios
       </a>
-      <a routerLink="/reportes" routerLinkActive="active" class="nav-item">
+      <a routerLink="/reportes" routerLinkActive="active" class="nav-item" (click)="closeMenu()">
         <i class="fas fa-chart-bar"></i> Reportes
       </a>
-      <button class="btn-logout" (click)="authService.logout()">
-        <i class="fas fa-sign-out-alt"></i> Salir
-      </button>
-      <button class="theme-toggle" (click)="toggleTheme()" title="Cambiar tema">
-        <i class="fas" [ngClass]="{'fa-moon': currentTheme === 'dark', 'fa-sun': currentTheme === 'light'}"></i>
-      </button>
+      <div class="nav-actions">
+        <button class="theme-toggle" (click)="toggleTheme()" title="Cambiar tema">
+          <i class="fas" [ngClass]="{'fa-moon': currentTheme === 'dark', 'fa-sun': currentTheme === 'light'}"></i>
+        </button>
+        <button class="btn-logout" (click)="authService.logout()">
+          <i class="fas fa-sign-out-alt"></i> Salir
+        </button>
+      </div>
     </div>
   </div>
 </nav>

@@ -240,3 +240,30 @@ body {
 [data-theme="dark"] .variable-desc {
   color: #94a3b8;
 }
+/* Mejoras globales para responsividad */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+
+  .form-control {
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+}
+
+/* Scroll suave para el menú móvil */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Prevenir scroll cuando el menú está abierto */
+body.menu-open {
+  overflow: hidden;
+}
