@@ -1,0 +1,103 @@
+ <div class="reporte-container">
+      <div class="header">
+        <h1><i class="fas fa-money-bill-trend-up"></i> Reporte de Ingresos</h1>
+        <button class="btn-secondary" routerLink="/reportes">
+          <i class="fas fa-arrow-left"></i> Volver
+        </button>
+      </div>
+
+      <div class="filtros-card glass">
+        <h3>Filtros</h3>
+      <div class="filtros-grid">
+        <div class="filtro-group">
+          <label>Fecha Inicio</label>
+          <input type="date" [(ngModel)]="fechaInicio" class="form-control" (change)="cargarDatos()">
+        </div>
+        <div class="filtro-group">
+          <label>Fecha Fin</label>
+          <input type="date" [(ngModel)]="fechaFin" class="form-control" (change)="cargarDatos()">
+        </div>
+        <div class="filtro-group">
+          <label>Agrupar por</label>
+          <select [(ngModel)]="grupo" (change)="cargarDatos()" class="form-control">
+            <option value="dia">Día</option>
+            <option value="semana">Semana</option>
+            <option value="mes">Mes</option>
+          </select>
+        </div>
+        <div class="filtro-group">
+          <label>&nbsp;</label>
+          <div style="display: flex; gap: 10px;">
+            <button class="btn-export" (click)="exportarExcel()">
+              <i class="fas fa-file-excel"></i> Exportar
+            </button>
+            <button class="btn-clear" (click)="limpiarFiltros()" title="Limpiar filtros">
+              <i class="fas fa-undo"></i> Limpiar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="resumen-grid">
+        <div class="resumen-card glass">
+          <span class="label">Total Ingresos</span>
+          <span class="valor total">{{ totalIngresos | moneda }}</span>
+        </div>
+        <div class="resumen-card glass">
+          <span class="label">Efectivo</span>
+          <span class="valor efectivo">{{ totalEfectivo | moneda }}</span>
+        </div>
+        <div class="resumen-card glass">
+          <span class="label">Tarjeta</span>
+          <span class="valor tarjeta">{{ totalTarjeta | moneda }}</span>
+        </div>
+        <div class="resumen-card glass">
+          <span class="label">Transferencia/Yape/Plin</span>
+          <span class="valor digital">{{ totalDigital | moneda }}</span>
+        </div>
+      </div>
+
+      <div class="grafico-card glass">
+        <h3>Evolución de Ingresos</h3>
+        <canvas id="ingresosChart"></canvas>
+      </div>
+
+      <div class="tabla-card glass">
+        <h3>Detalle por Período</h3>
+        <div class="table-responsive">
+          <table class="reporte-table">
+            <thead>
+              <tr>
+                <th>Período</th>
+                <th>Efectivo</th>
+                <th>Tarjeta</th>
+                <th>Digital</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of datosTabla">
+                <td>{{ item.periodo }}</td>
+                <td class="monto">{{ item.efectivo | moneda }}</td>
+                <td class="monto">{{ item.tarjeta | moneda }}</td>
+                <td class="monto">{{ item.digital | moneda }}</td>
+                <td class="monto total">{{ item.total | moneda }}</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <th>Totales</th>
+                <th class="monto">{{ totalEfectivo | moneda }}</th>
+                <th class="monto">{{ totalTarjeta | moneda }}</th>
+                <th class="monto">{{ totalDigital | moneda }}</th>
+                <th class="monto total">{{ totalIngresos | moneda }}</th>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <div *ngIf="cargando" class="loading-container">
+        <app-loading-spinner></app-loading-spinner>
+      </div>
+    </div>

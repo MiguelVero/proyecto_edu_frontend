@@ -1,0 +1,93 @@
+<div class="form-container">
+      <div class="header">
+        <h1>{{ esEdicion ? 'Editar' : 'Nueva' }} Orden</h1>
+        <button class="btn-secondary" routerLink="/ordenes">
+          <i class="fas fa-arrow-left"></i> Volver
+        </button>
+      </div>
+
+        <form [formGroup]="ordenForm" (ngSubmit)="onSubmit()" class="form">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Doctor *</label>
+        <app-searchable-select
+          formControlName="doctor_id"
+          [opciones]="doctores"
+          placeholder="Buscar doctor..."
+          [mostrarIcono]="true"
+          [mostrarDetalle]="true"
+        ></app-searchable-select>
+      </div>
+
+      <div class="form-group">
+        <label>Servicio *</label>
+        <app-searchable-select
+          formControlName="servicio_id"
+          [opciones]="servicios"
+          placeholder="Buscar servicio..."
+        ></app-searchable-select>
+      </div>
+    </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Total (S/) *</label>
+            <input type="number" formControlName="total" class="form-control" step="0.01">
+          </div>
+
+          <div class="form-group">
+            <label>{{ esEdicion ? 'Total Abonado (S/)' : 'Pago Inicial (S/)' }}</label>
+            <input 
+                type="number" 
+                formControlName="pago_inicial" 
+                class="form-control" 
+                step="0.01"
+                [readonly]="esEdicion" 
+            >
+            <small *ngIf="esEdicion" class="text-muted">
+                * Para modificar el abonado, use la opción "Agregar Pago" en el detalle
+            </small>
+            </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Prioridad</label>
+            <select formControlName="prioridad" class="form-control">
+              <option value="normal">Normal</option>
+              <option value="urgente">Urgente</option>
+              <option value="emergencia">Emergencia</option>
+            </select>
+          </div>
+
+          <!-- Reemplazar el campo de fecha límite actual con este -->
+          <div class="form-group">
+            <label>Fecha Límite</label>
+            <div class="datetime-input-group">
+              <input type="date" formControlName="fecha_limite" class="form-control date-input">
+              <input type="time" formControlName="hora_limite" class="form-control time-input" placeholder="HH:MM">
+            </div>
+            <small class="text-muted">Formato: DD/MM/AAAA HH:MM</small>
+          </div>
+        </div>
+
+       <!-- DESPUÉS: input más compacto -->
+            <div class="form-group cliente-group">
+            <label>Cliente</label>
+            <input 
+                type="text" 
+                formControlName="cliente_nombre" 
+                class="form-control" 
+                placeholder="Nombre del paciente"
+            >
+            </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" routerLink="/ordenes">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="ordenForm.invalid">
+            {{ esEdicion ? 'Actualizar' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </div>

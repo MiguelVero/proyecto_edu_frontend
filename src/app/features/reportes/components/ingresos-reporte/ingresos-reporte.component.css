@@ -1,0 +1,202 @@
+.reporte-container {
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #10b981, #059669);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: 0;
+    }
+
+    .btn-secondary {
+      background: var(--in, #f1f5f9);
+      color: var(--txt, #0f172a);
+      border: 1px solid var(--bor, #e2e8f0);
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .filtros-card {
+      background: var(--surf, #ffffff);
+      border: 1px solid var(--bor, #e2e8f0);
+      border-radius: 20px;
+      padding: 25px;
+      margin-bottom: 30px;
+    }
+
+    .filtros-card h3 {
+      margin-top: 0;
+      margin-bottom: 20px;
+    }
+
+    .filtros-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      align-items: end;
+    }
+
+    .filtro-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--txt, #0f172a);
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--bor, #e2e8f0);
+      border-radius: 12px;
+      background: var(--in, #f8fafc);
+      color: var(--txt, #0f172a);
+    }
+
+    .btn-export {
+      width: 100%;
+      background: #10b981;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-export:hover {
+      background: #059669;
+    }
+
+    .resumen-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .resumen-card {
+      background: var(--surf, #ffffff);
+      border: 1px solid var(--bor, #e2e8f0);
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .resumen-card .label {
+      display: block;
+      font-size: 0.9rem;
+      color: var(--mut, #64748b);
+      margin-bottom: 10px;
+    }
+
+    .resumen-card .valor {
+      display: block;
+      font-size: 1.8rem;
+      font-weight: 800;
+    }
+
+    .total { color: #6366f1; }
+    .efectivo { color: #10b981; }
+    .tarjeta { color: #8b5cf6; }
+    .digital { color: #f59e0b; }
+
+    .grafico-card {
+      background: var(--surf, #ffffff);
+      border: 1px solid var(--bor, #e2e8f0);
+      border-radius: 20px;
+      padding: 25px;
+      margin-bottom: 30px;
+    }
+
+    .grafico-card h3 {
+      margin-top: 0;
+      margin-bottom: 20px;
+    }
+
+    .tabla-card {
+      background: var(--surf, #ffffff);
+      border: 1px solid var(--bor, #e2e8f0);
+      border-radius: 20px;
+      padding: 25px;
+    }
+
+    .table-responsive {
+      overflow-x: auto;
+    }
+
+    .reporte-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .reporte-table th,
+    .reporte-table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--bor, #e2e8f0);
+    }
+
+    .reporte-table th {
+      background: var(--in, #f8fafc);
+      font-weight: 600;
+    }
+
+    .reporte-table tfoot th {
+      background: var(--in, #f8fafc);
+      border-top: 2px solid var(--bor, #e2e8f0);
+    }
+
+    .monto {
+      text-align: right;
+      font-family: monospace;
+    }
+
+    .loading-container {
+      display: flex;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    [data-theme="dark"] .filtros-card,
+    [data-theme="dark"] .resumen-card,
+    [data-theme="dark"] .grafico-card,
+    [data-theme="dark"] .tabla-card {
+      background: #0f172a;
+    }
+  .btn-clear {
+  background: #64748b;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 100px;
+}
+
+.btn-clear:hover {
+  background: #475569;
+}

@@ -1,0 +1,79 @@
+<div class="reportes-container">
+      <div class="header">
+        <h1><i class="fas fa-chart-bar"></i> Reportes y Estadísticas</h1>
+      </div>
+
+      <div class="reportes-grid">
+        <!-- Tarjeta de Ingresos -->
+        <div class="reporte-card glass" routerLink="ingresos">
+          <div class="card-icon" style="background: linear-gradient(135deg, #10b981, #059669)">
+            <i class="fas fa-money-bill-trend-up"></i>
+          </div>
+          <div class="card-content">
+            <h3>Reporte de Ingresos</h3>
+            <p>Analiza los ingresos por período, compara meses y visualiza tendencias</p>
+            <span class="card-link">Ver reporte <i class="fas fa-arrow-right"></i></span>
+          </div>
+        </div>
+
+        <!-- Tarjeta de Doctores -->
+        <div class="reporte-card glass" routerLink="doctores">
+          <div class="card-icon" style="background: linear-gradient(135deg, #6366f1, #4f46e5)">
+            <i class="fas fa-user-doctor"></i>
+          </div>
+          <div class="card-content">
+            <h3>Reporte por Doctor</h3>
+            <p>Rendimiento individual, deudas por doctor y órdenes pendientes</p>
+            <span class="card-link">Ver reporte <i class="fas fa-arrow-right"></i></span>
+          </div>
+        </div>
+
+        <!-- Tarjeta de Servicios -->
+        <div class="reporte-card glass" routerLink="servicios">
+          <div class="card-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706)">
+            <i class="fas fa-tooth"></i>
+          </div>
+          <div class="card-content">
+            <h3>Reporte por Servicio</h3>
+            <p>Servicios más solicitados, ingresos por tipo de trabajo</p>
+            <span class="card-link">Ver reporte <i class="fas fa-arrow-right"></i></span>
+          </div>
+        </div>
+
+        <!-- Tarjeta de Morosidad -->
+        <div class="reporte-card glass" routerLink="morosidad">
+          <div class="card-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626)">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <div class="card-content">
+            <h3>Reporte de Morosidad</h3>
+            <p>Clientes con deudas vencidas, antigüedad de saldos</p>
+            <span class="card-link">Ver reporte <i class="fas fa-arrow-right"></i></span>
+          </div>
+        </div>
+
+        <!-- Tarjeta de Productividad -->
+        <div class="reporte-card glass" routerLink="productividad">
+          <div class="card-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed)">
+            <i class="fas fa-gauge-high"></i>
+          </div>
+          <div class="card-content">
+            <h3>Productividad</h3>
+            <p>Tiempos de entrega, órdenes completadas vs pendientes</p>
+            <span class="card-link">Ver reporte <i class="fas fa-arrow-right"></i></span>
+          </div>
+        </div>
+
+        <!-- Tarjeta de Exportar -->
+        <div class="reporte-card glass" (click)="exportarTodo()">
+          <div class="card-icon" style="background: linear-gradient(135deg, #64748b, #475569)">
+            <i class="fas fa-file-export"></i>
+          </div>
+          <div class="card-content">
+            <h3>Exportar Todo</h3>
+            <p>Descarga todos los reportes en formato Excel</p>
+            <span class="card-link">Exportar <i class="fas fa-download"></i></span>
+          </div>
+        </div>
+      </div>
+    </div>

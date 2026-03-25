@@ -1,0 +1,124 @@
+<div class="reporte-container">
+  <div class="header">
+    <h1><i class="fas fa-user-doctor"></i> Reporte por Doctor</h1>
+    <div class="header-actions">
+      <button class="btn-export" (click)="exportarExcel()">
+        <i class="fas fa-file-excel"></i> Exportar Excel
+      </button>
+      <button class="btn-secondary" routerLink="/reportes">
+        <i class="fas fa-arrow-left"></i> Volver
+      </button>
+    </div>
+  </div>
+
+  <div class="resumen-card glass">
+    <div class="resumen-stats">
+      <div class="stat">
+        <span class="label">Total Doctores</span>
+        <span class="value">{{ totalDoctores }}</span>
+      </div>
+      <div class="stat">
+        <span class="label">Deuda Total</span>
+        <span class="value" [ngClass]="{'deuda-positiva': deudaTotal > 0, 'deuda-cero': deudaTotal === 0}">
+          {{ deudaTotal | moneda }}
+        </span>
+      </div>
+      <div class="stat">
+        <span class="label">Órdenes Pendientes</span>
+        <span class="value">{{ totalPendientes }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabla-card glass">
+    <h3>Rendimiento por Doctor</h3>
+    <div class="table-responsive">
+      <table class="reporte-table">
+        <thead>
+          <tr>
+            <th>Doctor</th>
+            <th>Contacto</th>
+            <th>Total Órdenes</th>
+            <th>Pendientes</th>
+            <th>Vencidas</th>
+            <th>Total Facturado</th>
+            <th>Total Pagado</th>
+            <th>Deuda Actual</th>
+            <th>Próxima Entrega</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let doctor of doctores" [ngClass]="{'fila-pagado': doctor.deuda_total === 0}">
+            <td>
+              <div class="doctor-info">
+                <img [src]="doctor.logo_url | imagen:'assets/images/default-doctor.png'" 
+                     [alt]="doctor.nombre"
+                     class="doctor-thumb">
+                <span class="doctor-nombre">{{ doctor.nombre }}</span>
+              </div>
+            </td>
+            <td>
+              <div *ngIf="doctor.telefono_whatsapp" class="contacto-info">
+                <i class="fab fa-whatsapp whatsapp"></i>
+                <span>{{ doctor.telefono_whatsapp }}</span>
+              </div>
+              <span *ngIf="!doctor.telefono_whatsapp" class="sin-contacto">-</span>
+            </td>
+            <td class="numero">{{ doctor.total_ordenes }}</td>
+            <td class="numero">{{ doctor.ordenes_pendientes }}</td>
+            <td class="numero" [ngClass]="{'vencidas-positivo': doctor.ordenes_vencidas > 0, 'vencidas-cero': doctor.ordenes_vencidas === 0}">
+              {{ doctor.ordenes_vencidas }}
+            </td>
+            <td class="monto">{{ doctor.total_facturado | moneda }}</td>
+            <td class="monto">{{ doctor.total_pagado | moneda }}</td>
+            <td class="monto" [ngClass]="{'deuda-positiva': doctor.deuda_total > 0, 'deuda-cero': doctor.deuda_total === 0}">
+              {{ doctor.deuda_total | moneda }}
+            </td>
+            <td>{{ doctor.proxima_entrega | fecha }}</td>
+            <td>
+            <button class="btn-icon" [routerLink]="['/doctores', doctor.id]" title="Ver doctor"> <!-- CAMBIO AQUÍ: doctor.id -->
+              <i class="fas fa-eye"></i>
+            </button>
+          </td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <th colspan="5">Totales</th>
+            <th class="monto">{{ totalFacturado | moneda }}</th>
+            <th class="monto">{{ totalPagado | moneda }}</th>
+            <th class="monto" [ngClass]="{'deuda-positiva': deudaTotal > 0, 'deuda-cero': deudaTotal === 0}">
+              {{ deudaTotal | moneda }}
+            </th>
+            <th colspan="2"></th>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <div class="ranking-grid">
+    <div class="ranking-card glass">
+      <h3><i class="fas fa-trophy" style="color: gold;"></i> Top 5 - Más Órdenes</h3>
+      <div *ngFor="let doctor of topDoctores; let i = index" class="ranking-item">
+        <span class="posicion">{{ i + 1 }}</span>
+        <span class="nombre">{{ doctor.nombre }}</span>
+        <span class="valor">{{ doctor.total_ordenes }} órdenes</span>
+      </div>
+    </div>
+
+    <div class="ranking-card glass">
+      <h3><i class="fas fa-exclamation-triangle" style="color: #f43f5e;"></i> Top 5 - Mayor Deuda</h3>
+      <div *ngFor="let doctor of topDeudores; let i = index" class="ranking-item">
+        <span class="posicion">{{ i + 1 }}</span>
+        <span class="nombre">{{ doctor.nombre }}</span>
+        <span class="valor deuda-positiva">{{ doctor.deuda_total | moneda }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="cargando" class="loading-container">
+    <app-loading-spinner></app-loading-spinner>
+  </div>
+</div>

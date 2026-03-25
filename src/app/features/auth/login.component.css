@@ -1,0 +1,345 @@
+/* login.component.css - VERSIÓN COMPLETA CON INPUTS CLAROS */
+
+/* Contenedor principal - fondo con gradiente radial */
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at bottom left, #1e1b4b, #020617);
+  padding: 16px;
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* Tarjeta de login - estilo glassmorphism */
+.login-card {
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  padding: 48px 32px;
+  border-radius: 40px;
+  width: 100%;
+  max-width: 400px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  transition: transform 0.3s ease;
+}
+
+.login-card:hover {
+  transform: translateY(-4px);
+}
+
+/* Header con ícono y título */
+.login-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.login-header i {
+  font-size: 4rem;
+  color: #ffffff;
+  margin-bottom: 16px;
+  display: inline-block;
+  filter: drop-shadow(0 10px 20px rgba(99, 102, 241, 0.3));
+}
+
+.login-header h1 {
+  color: #ffffff;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -1px;
+  font-size: 2rem;
+  text-transform: uppercase;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Estilo para todos los campos del formulario */
+.full-width {
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+/* ============================================
+   ESTILOS PARA INPUTS CON FONDO CLARO
+   ============================================ */
+
+/* Fondo blanco para los inputs */
+::ng-deep .mat-form-field-outline {
+  background-color: #ffffff !important;
+  border-radius: 12px !important;
+}
+
+::ng-deep .mat-form-field-appearance-outline .mat-form-field-outline {
+  background-color: #ffffff !important;
+  border-radius: 12px !important;
+}
+
+::ng-deep .mat-form-field-appearance-outline .mat-form-field-outline-thick {
+  background-color: #ffffff !important;
+}
+
+/* Estilo del borde */
+::ng-deep .mat-form-field-appearance-outline .mat-form-field-outline-start,
+::ng-deep .mat-form-field-appearance-outline .mat-form-field-outline-gap,
+::ng-deep .mat-form-field-appearance-outline .mat-form-field-outline-end {
+  border: none !important;
+}
+
+/* Color del borde cuando el campo está enfocado */
+::ng-deep .mat-form-field.mat-focused .mat-form-field-outline-thick {
+  color: #6366f1 !important;
+  border: 2px solid #6366f1 !important;
+  border-radius: 12px !important;
+}
+
+/* Texto del input - NEGRO */
+::ng-deep .mat-input-element {
+  color: #000000 !important;
+  caret-color: #6366f1 !important;
+  font-weight: 500 !important;
+  font-size: 1rem !important;
+  background-color: transparent !important;
+}
+
+/* Placeholder - gris oscuro */
+::ng-deep .mat-input-element::placeholder {
+  color: rgba(0, 0, 0, 0.4) !important;
+  font-weight: 400 !important;
+}
+
+/* Para navegadores WebKit */
+::ng-deep .mat-input-element::-webkit-input-placeholder {
+  color: rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Para Firefox */
+::ng-deep .mat-input-element::-moz-placeholder {
+  color: rgba(0, 0, 0, 0.4) !important;
+  opacity: 1;
+}
+
+/* Para Internet Explorer */
+::ng-deep .mat-input-element:-ms-input-placeholder {
+  color: rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Label flotante - oscuro */
+::ng-deep .mat-form-field-label {
+  color: rgba(0, 0, 0, 0.7) !important;
+  font-weight: 500 !important;
+}
+
+/* Label flotante cuando el campo está enfocado */
+::ng-deep .mat-form-field.mat-focused .mat-form-field-label {
+  color: #6366f1 !important;
+}
+
+/* Label flotante cuando el campo tiene valor */
+::ng-deep .mat-form-field.mat-form-field-should-float .mat-form-field-label {
+  color: rgba(0, 0, 0, 0.8) !important;
+}
+
+/* Label flotante cuando está enfocado y tiene valor */
+::ng-deep .mat-form-field.mat-focused.mat-form-field-should-float .mat-form-field-label {
+  color: #6366f1 !important;
+}
+
+/* Íconos - oscuros */
+::ng-deep .mat-icon {
+  color: rgba(0, 0, 0, 0.5) !important;
+}
+
+::ng-deep .mat-form-field.mat-focused .mat-icon {
+  color: #6366f1 !important;
+}
+
+/* Botón de mostrar/ocultar contraseña */
+::ng-deep .mat-icon-button {
+  color: rgba(0, 0, 0, 0.5) !important;
+}
+
+::ng-deep .mat-icon-button:hover {
+  color: #6366f1 !important;
+}
+
+/* Mensajes de error */
+::ng-deep .mat-error {
+  font-size: 0.75rem !important;
+  margin-top: 4px !important;
+  color: #f43f5e !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.3px !important;
+}
+
+/* Ajuste del padding interno */
+::ng-deep .mat-form-field-appearance-outline .mat-form-field-infix {
+  padding: 0.8em 0 0.8em 0;
+}
+
+::ng-deep .mat-form-field-appearance-outline .mat-form-field-wrapper {
+  margin: 0;
+}
+
+::ng-deep .mat-form-field-appearance-outline .mat-form-field-flex {
+  padding: 0 12px !important;
+}
+
+/* Estilo especial para el campo de contraseña */
+::ng-deep input[type="password"].mat-input-element {
+  color: #000000 !important;
+  font-weight: 500 !important;
+  letter-spacing: 2px;
+}
+
+/* ============================================
+   PERSONALIZACIÓN DEL AUTOCOMPLETADO
+   ============================================ */
+::ng-deep input:-webkit-autofill,
+::ng-deep input:-webkit-autofill:hover,
+::ng-deep input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #000000 !important;
+  -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+  caret-color: #6366f1 !important;
+  border-radius: 12px !important;
+}
+
+/* ============================================
+   BOTÓN DE INGRESO
+   ============================================ */
+
+/* Botón de envío principal */
+button[type="submit"] {
+  width: 100%;
+  padding: 16px !important;
+  font-size: 1rem !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+  border: none !important;
+  border-radius: 18px !important;
+  margin-top: 16px !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.3) !important;
+  color: white !important;
+}
+
+button[type="submit"]:hover:not(:disabled) {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 15px 25px -5px rgba(99, 102, 241, 0.4) !important;
+}
+
+button[type="submit"]:active:not(:disabled) {
+  transform: translateY(0) !important;
+}
+
+button[type="submit"]:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+/* Estilo para el ícono dentro del botón */
+button[type="submit"] i {
+  margin-right: 8px;
+  font-size: 1.1rem;
+}
+
+/* ============================================
+   ANIMACIONES
+   ============================================ */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.login-card {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+/* ============================================
+   ESTILOS RESPONSIVOS
+   ============================================ */
+
+/* Para tablets y móviles */
+@media (max-width: 480px) {
+  .login-card {
+    padding: 40px 24px;
+    border-radius: 32px;
+  }
+
+  .login-header i {
+    font-size: 3.5rem;
+  }
+
+  .login-header h1 {
+    font-size: 1.6rem;
+  }
+
+  button[type="submit"] {
+    padding: 14px !important;
+    font-size: 0.95rem !important;
+    border-radius: 16px !important;
+  }
+  
+  ::ng-deep .mat-form-field-appearance-outline .mat-form-field-infix {
+    padding: 0.6em 0;
+  }
+}
+
+/* Para pantallas muy pequeñas */
+@media (max-width: 360px) {
+  .login-card {
+    padding: 32px 20px;
+  }
+
+  .login-header i {
+    font-size: 3rem;
+  }
+
+  .login-header h1 {
+    font-size: 1.4rem;
+  }
+}
+
+/* ============================================
+   AJUSTES ADICIONALES PARA MEJOR VISIBILIDAD
+   ============================================ */
+
+/* Eliminar el borde por defecto de Angular Material */
+::ng-deep .mat-form-field-appearance-outline .mat-form-field-outline {
+  color: transparent !important;
+}
+
+/* Asegurar que el fondo blanco cubra todo el input */
+::ng-deep .mat-form-field-flex {
+  background-color: #ffffff !important;
+  border-radius: 12px !important;
+}
+
+/* Pequeño ajuste para la sombra al hacer focus */
+::ng-deep .mat-form-field.mat-focused .mat-form-field-flex {
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+/* Asegurar que el texto del label flotante no se corte */
+::ng-deep .mat-form-field-label-wrapper {
+  overflow: visible !important;
+}
+
+/* Mejorar la visibilidad del borde cuando el campo es inválido */
+::ng-deep .mat-form-field.ng-invalid.ng-touched .mat-form-field-flex {
+  border: 2px solid #f43f5e !important;
+}
+
+::ng-deep .mat-form-field.ng-invalid.ng-touched .mat-icon {
+  color: #f43f5e !important;
+}

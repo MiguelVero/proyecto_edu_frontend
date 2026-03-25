@@ -1,0 +1,72 @@
+<div class="reporte-container">
+      <div class="header">
+        <h1><i class="fas fa-exclamation-triangle"></i> Reporte de Morosidad</h1>
+        <div class="header-actions">
+          <button class="btn-export" (click)="exportarExcel()">
+            <i class="fas fa-file-excel"></i> Exportar Excel
+          </button>
+          <button class="btn-secondary" routerLink="/reportes">
+            <i class="fas fa-arrow-left"></i> Volver
+          </button>
+        </div>
+      </div>
+
+      <div class="resumen-grid">
+        <div class="resumen-card glass">
+          <span class="label">Deuda Total</span>
+          <span class="value deuda">{{ resumen.deudaTotal | moneda }}</span>
+        </div>
+        <div class="resumen-card glass">
+          <span class="label">Clientes Morosos</span>
+          <span class="value">{{ resumen.clientesMorosos }}</span>
+        </div>
+        <div class="resumen-card glass">
+          <span class="label">Órdenes Vencidas</span>
+          <span class="value">{{ resumen.ordenesVencidas }}</span>
+        </div>
+      </div>
+
+      <div class="tabla-card glass">
+        <h3>Detalle de Deudas Pendientes</h3>
+        <div class="table-responsive">
+          <table class="reporte-table">
+            <thead>
+              <tr>
+                <th>Doctor</th>
+                <th>Contacto</th>
+                <th>Órdenes</th>
+                <th>Deuda Total</th>
+                <th>Vencidas</th>
+                <th>Días de Mora</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of deuda">
+                <td>{{ item.doctor }}</td>
+                <td>
+                  <a *ngIf="item.telefono" [href]="'https://wa.me/' + item.telefono" target="_blank">
+                    <i class="fab fa-whatsapp whatsapp"></i> {{ item.telefono }}
+                  </a>
+                </td>
+                <td class="numero">{{ item.ordenes }}</td>
+                <td class="monto deuda">{{ item.deuda | moneda }}</td>
+                <td class="numero">{{ item.vencidas }}</td>
+                <td class="numero" [ngClass]="{'critico': item.diasMora > 30}">
+                  {{ item.diasMora }}
+                </td>
+                <td>
+                  <button class="btn-icon" [routerLink]="['/doctores', item.doctorId]" title="Ver doctor">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div *ngIf="cargando" class="loading-container">
+        <app-loading-spinner></app-loading-spinner>
+      </div>
+    </div>

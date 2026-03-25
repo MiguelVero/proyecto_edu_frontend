@@ -1,0 +1,234 @@
+<div class="ordenes-container">
+  <div class="header">
+    <div class="header-title">
+      <h1><i class="fas fa-clipboard-list"></i> Órdenes de Trabajo</h1>
+      <div class="header-stats" *ngIf="!cargando">
+        <span class="stat-badge active">
+          <i class="fas fa-chart-line"></i> Activas: {{ ordenesActivas.length }}
+        </span>
+        <span class="stat-badge total">
+          <i class="fas fa-database"></i> Total: {{ ordenes.length }}
+        </span>
+      </div>
+    </div>
+    <button class="btn-primary" routerLink="nueva">
+      <i class="fas fa-plus"></i> Nueva Orden
+    </button>
+  </div>
+
+  <!-- Barra de filtros mejorada -->
+  <div class="filtros-bar">
+    <div class="search-box">
+      <i class="fas fa-search"></i>
+      <input 
+        type="text" 
+        [(ngModel)]="filtros.busquedaGlobal" 
+        (ngModelChange)="filtrarOrdenes()"
+        placeholder="Buscar por doctor, servicio, cliente, orden..."
+        class="form-control"
+      >
+    </div>
+
+    <div class="filtros-rapidos">
+      <button class="filtro-rapido" [class.active]="filtros.estado === 'pendiente'" (click)="setFiltroEstado('pendiente')">
+        <i class="fas fa-clock"></i> Pendientes
+      </button>
+      <button class="filtro-rapido" [class.active]="filtros.estado === 'terminado'" (click)="setFiltroEstado('terminado')">
+        <i class="fas fa-check-circle"></i> Terminados
+      </button>
+      <button class="filtro-rapido" [class.active]="filtros.vencidas" (click)="toggleFiltroVencidas()">
+        <i class="fas fa-exclamation-triangle"></i> Vencidas
+      </button>
+      
+    </div>
+
+    <button class="btn-filtros" (click)="mostrarFiltrosAvanzados = !mostrarFiltrosAvanzados">
+      <i class="fas fa-sliders-h"></i>
+      Filtros avanzados {{ filtrosActivosCount > 0 ? '(' + filtrosActivosCount + ')' : '' }}
+    </button>
+  </div>
+
+  <!-- Filtros avanzados (colapsables) -->
+  <div class="filtros-avanzados" *ngIf="mostrarFiltrosAvanzados">
+    <div class="filtros-grid">
+      <div class="filtro-group">
+        <label>Doctor</label>
+        <app-searchable-select
+          [opciones]="doctoresCompleto"
+          [incluirTodos]="true"
+          placeholder="Buscar doctor..."
+          (selectionChange)="onDoctorSeleccionado($event)"
+        ></app-searchable-select>
+      </div>
+
+      <div class="filtro-group">
+        <label>Servicio</label>
+        <app-searchable-select
+          [opciones]="serviciosCompleto"
+          [incluirTodos]="true"
+          placeholder="Buscar servicio..."
+          (selectionChange)="onServicioSeleccionado($event)"
+        ></app-searchable-select>
+      </div>
+
+      <div class="filtro-group">
+        <label>Prioridad</label>
+        <select [(ngModel)]="filtros.prioridad" (ngModelChange)="filtrarOrdenes()" class="form-control">
+          <option value="">Todas</option>
+          <option value="normal">Normal</option>
+          <option value="urgente">Urgente</option>
+          <option value="emergencia">Emergencia</option>
+        </select>
+      </div>
+
+      <div class="filtro-group">
+        <label>Cliente</label>
+        <input 
+          type="text" 
+          [(ngModel)]="filtros.cliente" 
+          (ngModelChange)="filtrarOrdenes()"
+          placeholder="Nombre del cliente..."
+          class="form-control"
+        >
+      </div>
+
+      <div class="filtro-group">
+        <label>Fecha límite desde</label>
+        <input type="date" [(ngModel)]="filtros.fechaInicio" (ngModelChange)="filtrarOrdenes()" class="form-control">
+      </div>
+
+      <div class="filtro-group">
+        <label>Fecha límite hasta</label>
+        <input type="date" [(ngModel)]="filtros.fechaFin" (ngModelChange)="filtrarOrdenes()" class="form-control">
+      </div>
+
+      <div class="filtro-group">
+        <label>Saldo mínimo (S/)</label>
+        <input type="number" [(ngModel)]="filtros.saldoMin" (ngModelChange)="filtrarOrdenes()" placeholder="0.00" class="form-control" step="0.01">
+      </div>
+
+      <div class="filtro-group">
+        <label>Saldo máximo (S/)</label>
+        <input type="number" [(ngModel)]="filtros.saldoMax" (ngModelChange)="filtrarOrdenes()" placeholder="0.00" class="form-control" step="0.01">
+      </div>
+    </div>
+
+    <div class="filtros-actions">
+      <button class="btn-secondary" (click)="limpiarFiltros()">
+        <i class="fas fa-eraser"></i> Limpiar filtros
+      </button>
+      <span class="resultados-count">{{ ordenesFiltradas.length }} resultados</span>
+    </div>
+  </div>
+
+  <!-- TABLA DE ÓRDENES -->
+<!-- TABLA DE ÓRDENES -->
+<!-- TABLA DE ÓRDENES -->
+<!-- TABLA DE ÓRDENES -->
+<div class="table-container" *ngIf="!cargando">
+  <table class="ordenes-table">
+    <thead>
+      <tr>
+        <th class="col-doctor">Doctor / Servicio</th>
+        <th class="col-estado">Estado</th>
+        <th class="col-acciones">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let orden of ordenesPaginadas" 
+          [ngClass]="{'row-vencida': isVencida(orden) && calcularSaldo(orden) > 0, 'row-terminada': orden.estado === 'terminado'}">
+        <td class="col-doctor">
+          <div class="doctor-cell">
+            <div class="doctor-images">
+              <div class="doctor-avatar">
+                <app-image-zoom 
+                  [src]="orden.doctor?.logo_url"
+                  [alt]="orden.doctor?.nombre"
+                  defaultImage="assets/images/default-doctor.png"
+                  class="small-zoom">
+                </app-image-zoom>
+              </div>
+              <div class="service-icon" *ngIf="orden.servicio?.imagen_url">
+                <app-image-zoom 
+                  [src]="orden.servicio?.imagen_url"
+                  [alt]="orden.servicio?.nombre"
+                  defaultImage="assets/images/default-service.png"
+                  class="small-zoom">
+                </app-image-zoom>
+              </div>
+            </div>
+            <div class="doctor-info">
+              <strong>{{ orden.doctor?.nombre }}</strong>
+              <span class="servicio-nombre">{{ orden.servicio?.nombre }}</span>
+            </div>
+          </div>
+        </td>
+        <td class="col-estado">
+          <span class="estado-badge" [ngClass]="'estado-' + orden.estado">
+            {{ orden.estado | titlecase }}
+          </span>
+        </td>
+        <td class="col-acciones">
+          <div class="acciones-buttons">
+            <button class="btn-icon" [routerLink]="[orden.id]" title="Ver detalles">
+              <i class="fas fa-eye"></i>
+            </button>
+            <button class="btn-icon btn-delete" (click)="eliminarOrden(orden)" title="Eliminar orden">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- PAGINACIÓN -->
+  <!-- PAGINACIÓN -->
+<div class="pagination-container" *ngIf="ordenesFiltradas.length > 0">
+  <div class="pagination-info">
+    Mostrando 
+    <strong>{{ ordenesPaginadas.length }}</strong> 
+    de <strong>{{ ordenesFiltradas.length }}</strong> órdenes
+  </div>
+  
+  <div class="pagination-controls">
+    <button class="pagination-btn" (click)="anteriorPagina()" [disabled]="paginaActual === 1">
+      <i class="fas fa-chevron-left"></i>
+    </button>
+    
+    <div class="pagination-pages">
+      <button *ngFor="let pagina of [].constructor(totalPaginas); let i = index"
+              class="page-btn"
+              [class.active]="paginaActual === i + 1"
+              (click)="cambiarPagina(i + 1)">
+        {{ i + 1 }}
+      </button>
+    </div>
+    
+    <button class="pagination-btn" (click)="siguientePagina()" [disabled]="paginaActual === totalPaginas">
+      <i class="fas fa-chevron-right"></i>
+    </button>
+    
+    <select #perPageSelect class="per-page-select" (change)="cambiarItemsPorPagina(perPageSelect.value)">
+      <option value="5" [selected]="itemsPorPagina === 5">5 por página</option>
+      <option value="10" [selected]="itemsPorPagina === 10">10 por página</option>
+      <option value="20" [selected]="itemsPorPagina === 20">20 por página</option>
+      <option value="50" [selected]="itemsPorPagina === 50">50 por página</option>
+    </select>
+  </div>
+</div>
+
+  <div *ngIf="ordenesFiltradas.length === 0" class="empty-state">
+    <i class="fas fa-clipboard-list"></i>
+    <h3>No hay órdenes</h3>
+    <p>No se encontraron órdenes con los filtros seleccionados</p>
+    <button class="btn-secondary" (click)="limpiarFiltros()">
+      <i class="fas fa-eraser"></i> Limpiar filtros
+    </button>
+  </div>
+</div>
+
+  <div *ngIf="cargando" class="loading-container">
+    <app-loading-spinner></app-loading-spinner>
+  </div>
+</div>

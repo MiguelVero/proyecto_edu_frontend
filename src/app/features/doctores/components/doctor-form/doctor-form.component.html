@@ -1,0 +1,69 @@
+<div class="form-container">
+  <div class="header">
+    <h1>{{ esEdicion ? 'Editar' : 'Nuevo' }} Doctor</h1>
+    <button class="btn-secondary" routerLink="/doctores">
+      <i class="fas fa-arrow-left"></i> Volver
+    </button>
+  </div>
+
+  <form [formGroup]="doctorForm" (ngSubmit)="onSubmit()" class="form" enctype="multipart/form-data">
+    <!-- Información básica -->
+    <div class="form-section">
+      <h2 class="section-title">Información Básica</h2>
+      <div class="form-grid">
+        <div class="form-group full-width">
+          <label>Nombre completo <span class="required">*</span></label>
+          <input type="text" formControlName="nombre" class="form-control" placeholder="Ej: Dr. Juan Pérez">
+          <div *ngIf="doctorForm.get('nombre')?.invalid && doctorForm.get('nombre')?.touched" class="text-danger">
+            El nombre es requerido
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Teléfono WhatsApp</label>
+          <input type="tel" formControlName="telefono_whatsapp" class="form-control" 
+                 placeholder="51999888777">
+          <small class="text-muted">Código de país incluido</small>
+        </div>
+
+        <div class="form-group">
+          <label>Dirección</label>
+          <input type="text" formControlName="direccion" class="form-control" 
+                 placeholder="Dirección completa">
+        </div>
+      </div>
+    </div>
+
+    <!-- Logo -->
+    <div class="form-section">
+      <h2 class="section-title">Logo del Doctor</h2>
+      <div class="logo-upload">
+        <div class="logo-preview-container" *ngIf="imagenPreview">
+          <img [src]="imagenPreview | imagen" alt="Logo preview" class="logo-preview">
+        </div>
+        <div class="upload-controls">
+          <div class="file-input-wrapper">
+            <input type="file" (change)="onFileSelected($event)" accept="image/*" class="file-input" #doctorFileInput>
+            <button type="button" class="btn-outline" (click)="doctorFileInput.click()">
+              <i class="fas fa-cloud-upload-alt"></i> 
+              {{ imagenPreview ? 'Cambiar logo' : 'Seleccionar logo' }}
+            </button>
+            <span class="file-name">{{ archivoSeleccionado?.name || 'Ningún archivo seleccionado' }}</span>
+          </div>
+          <small class="text-muted">Formatos: JPG, PNG, GIF. Máximo 2MB</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Acciones -->
+    <div class="form-actions">
+      <button type="button" class="btn-secondary" routerLink="/doctores">
+        Cancelar
+      </button>
+      <button type="submit" class="btn-primary" [disabled]="doctorForm.invalid">
+        <i class="fas" [ngClass]="esEdicion ? 'fa-sync-alt' : 'fa-save'"></i>
+        {{ esEdicion ? 'Actualizar' : 'Guardar' }}
+      </button>
+    </div>
+  </form>
+</div>

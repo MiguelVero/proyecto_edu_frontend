@@ -1,0 +1,290 @@
+.detalle-container {
+      padding: 20px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: 0;
+    }
+
+    .btn-secondary {
+      background: var(--in, #f1f5f9);
+      color: var(--txt, #0f172a);
+      border: 1px solid var(--bor, #e2e8f0);
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .info-card {
+      background: var(--surf, #ffffff);
+      border: 1px solid var(--bor, #e2e8f0);
+      border-radius: 24px;
+      padding: 30px;
+      margin-bottom: 30px;
+    }
+
+    .doctor-header {
+      display: flex;
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+
+    .doctor-logo-large {
+      width: 120px;
+      height: 120px;
+      border-radius: 30px;
+      object-fit: cover;
+    }
+
+    .doctor-titulo h2 {
+      margin: 0 0 10px 0;
+      font-size: 2rem;
+    }
+
+    .doctor-titulo p {
+      margin: 5px 0;
+      color: var(--mut, #64748b);
+    }
+
+    .doctor-titulo i {
+      width: 20px;
+      margin-right: 8px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .stat-item {
+      text-align: center;
+      padding: 20px;
+      background: var(--in, #f8fafc);
+      border-radius: 16px;
+    }
+
+    .stat-label {
+      display: block;
+      font-size: 0.9rem;
+      color: var(--mut, #64748b);
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      display: block;
+      font-size: 1.8rem;
+      font-weight: 800;
+    }
+
+    .deuda {
+      color: var(--d, #f43f5e);
+    }
+
+    .info-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 15px;
+      background: var(--in, #f8fafc);
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    .notas {
+      margin-bottom: 30px;
+    }
+
+    .notas h3 {
+      margin-bottom: 10px;
+    }
+
+    .acciones {
+      display: flex;
+      gap: 15px;
+      justify-content: flex-end;
+    }
+
+    .btn-whatsapp {
+      background: #25D366;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-edit {
+      background: #6366f1;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .ordenes-section {
+      background: var(--surf, #ffffff);
+      border: 1px solid var(--bor, #e2e8f0);
+      border-radius: 24px;
+      padding: 30px;
+    }
+
+    .ordenes-section h3 {
+      margin-bottom: 20px;
+    }
+
+    .orden-item {
+      display: grid;
+      grid-template-columns: auto 1fr auto auto;
+      gap: 20px;
+      align-items: center;
+      padding: 15px;
+      border-bottom: 1px solid var(--bor, #e2e8f0);
+    }
+
+    .orden-fecha {
+      color: var(--mut, #64748b);
+      font-size: 0.9rem;
+    }
+
+    .orden-total {
+      font-weight: 700;
+      color: var(--p, #6366f1);
+    }
+
+    .orden-estado {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .loading-container {
+      display: flex;
+      justify-content: center;
+      padding: 60px;
+    }
+    /* Agregar estas clases */
+
+.contacto {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--mut);
+  margin-top: 5px;
+}
+
+.whatsapp {
+  color: #25D366;
+  font-size: 1.2rem;
+}
+
+/* Estados de deuda */
+.deuda-positiva {
+  color: #f43f5e;
+}
+
+.deuda-cero {
+  color: #10b981;
+}
+
+/* Estilo para órdenes terminadas */
+.orden-terminada {
+  opacity: 0.8;
+}
+
+.orden-terminada .orden-total {
+  color: var(--mut) !important;
+}
+
+.no-ordenes {
+  text-align: center;
+  padding: 30px;
+  color: var(--mut);
+  font-style: italic;
+  background: var(--in);
+  border-radius: 12px;
+}
+
+/* Mejorar las órdenes */
+.orden-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  gap: 20px;
+  align-items: center;
+  padding: 15px;
+  border-bottom: 1px solid var(--bor);
+  transition: background-color 0.2s;
+}
+
+.orden-item:hover {
+  background-color: var(--in);
+}
+
+.orden-fecha {
+  color: var(--mut);
+  font-size: 0.9rem;
+  font-family: monospace;
+}
+
+.orden-servicio {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.orden-total {
+  font-weight: 700;
+  color: var(--p);
+  font-family: monospace;
+  text-align: right;
+}
+
+.orden-estado {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: center;
+  min-width: 90px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .orden-item {
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas: 
+      "fecha estado estado"
+      "servicio servicio total";
+    gap: 10px;
+  }
+
+  .orden-fecha { grid-area: fecha; }
+  .orden-servicio { grid-area: servicio; }
+  .orden-total { grid-area: total; text-align: right; }
+  .orden-estado { grid-area: estado; justify-self: end; }
+}

@@ -1,0 +1,310 @@
+  .reporte-container {
+      padding: 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: 0;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 15px;
+    }
+
+    .btn-secondary {
+      background: var(--in, #f1f5f9);
+      color: var(--txt, #0f172a);
+      border: 1px solid var(--bor, #e2e8f0);
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-export {
+      background: #10b981;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-export:hover {
+      background: #059669;
+    }
+
+    .resumen-card {
+      background: var(--surf, #ffffff);
+      border: 1px solid var(--bor, #e2e8f0);
+      border-radius: 20px;
+      padding: 25px;
+      margin-bottom: 30px;
+    }
+
+    .resumen-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 0.9rem;
+      color: var(--mut, #64748b);
+      margin-bottom: 8px;
+    }
+
+    .stat .value {
+      display: block;
+      font-size: 2rem;
+      font-weight: 800;
+    }
+
+    .deuda {
+      color: #f43f5e;
+    }
+
+    .tabla-card {
+      background: var(--surf, #ffffff);
+      border: 1px solid var(--bor, #e2e8f0);
+      border-radius: 20px;
+      padding: 25px;
+      margin-bottom: 30px;
+    }
+
+    .table-responsive {
+      overflow-x: auto;
+    }
+
+    .reporte-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .reporte-table th,
+    .reporte-table td {
+      padding: 15px;
+      text-align: left;
+      border-bottom: 1px solid var(--bor, #e2e8f0);
+    }
+
+    .reporte-table th {
+      background: var(--in, #f8fafc);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .reporte-table tfoot th {
+      background: var(--in, #f8fafc);
+      border-top: 2px solid var(--bor, #e2e8f0);
+    }
+
+    .doctor-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .doctor-thumb {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      object-fit: cover;
+    }
+
+    .numero, .monto {
+      text-align: right;
+      font-family: monospace;
+    }
+
+    .whatsapp {
+      color: #25D366;
+      margin-right: 5px;
+    }
+
+    .vencidas {
+      color: #f43f5e;
+      font-weight: 600;
+    }
+
+    .btn-icon {
+      width: 36px;
+      height: 36px;
+      border: none;
+      border-radius: 8px;
+      background: var(--in, #f1f5f9);
+      color: var(--txt, #0f172a);
+      cursor: pointer;
+    }
+
+    .btn-icon:hover {
+      background: #6366f1;
+      color: white;
+    }
+
+    .ranking-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .ranking-card {
+      background: var(--surf, #ffffff);
+      border: 1px solid var(--bor, #e2e8f0);
+      border-radius: 20px;
+      padding: 25px;
+    }
+
+    .ranking-card h3 {
+      margin-top: 0;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ranking-item {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 10px;
+      border-bottom: 1px solid var(--bor, #e2e8f0);
+    }
+
+    .ranking-item:last-child {
+      border-bottom: none;
+    }
+
+    .posicion {
+      width: 30px;
+      height: 30px;
+      background: var(--in, #f1f5f9);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+    }
+
+    .nombre {
+      flex: 1;
+      font-weight: 500;
+    }
+
+    .valor {
+      font-weight: 700;
+    }
+
+    .loading-container {
+      display: flex;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    [data-theme="dark"] .resumen-card,
+    [data-theme="dark"] .tabla-card,
+    [data-theme="dark"] .ranking-card {
+      background: #0f172a;
+    }
+    /* Agregar estas clases al final */
+
+.doctor-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.doctor-nombre {
+  font-weight: 500;
+}
+
+.contacto-info {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--txt);
+}
+
+.whatsapp {
+  color: #25D366;
+  font-size: 1.1rem;
+}
+
+.sin-contacto {
+  color: var(--mut);
+  font-style: italic;
+}
+
+/* Estados de deuda */
+.deuda-positiva {
+  color: #f43f5e;
+  font-weight: 600;
+}
+
+.deuda-cero {
+  color: #10b981;
+  font-weight: 600;
+}
+
+/* Estados de vencidas */
+.vencidas-positivo {
+  color: #f43f5e;
+  font-weight: 600;
+}
+
+.vencidas-cero {
+  color: var(--mut);
+}
+
+/* Fila completa cuando está pagado */
+.fila-pagado {
+  background-color: rgba(16, 185, 129, 0.05);
+}
+
+.fila-pagado:hover {
+  background-color: rgba(16, 185, 129, 0.1) !important;
+}
+
+/* Ajustes para la tabla */
+.reporte-table td {
+  padding: 12px 15px;
+  vertical-align: middle;
+}
+
+.reporte-table tbody tr:hover {
+  background-color: var(--in);
+}
+
+.reporte-table .monto {
+  font-family: monospace;
+  font-size: 0.95rem;
+}
+
+.reporte-table .numero {
+  font-family: monospace;
+  text-align: center;
+}

@@ -1,0 +1,490 @@
+ .detalle-container {
+      padding: 20px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: 0;
+    }
+
+    .btn-secondary {
+      background: var(--in, #f1f5f9);
+      color: var(--txt, #0f172a);
+      border: 1px solid var(--bor, #e2e8f0);
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .info-card {
+      background: var(--surf, #ffffff);
+      border: 1px solid var(--bor, #e2e8f0);
+      border-radius: 24px;
+      padding: 30px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 30px;
+    }
+
+    .doctor-info {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .doctor-logo {
+      width: 80px;
+      height: 80px;
+      border-radius: 20px;
+      object-fit: cover;
+    }
+
+    .doctor-info h2 {
+      margin: 0 0 5px 0;
+      font-size: 1.5rem;
+    }
+
+    .servicio {
+      color: var(--mut, #64748b);
+      font-size: 1rem;
+    }
+
+    .estado {
+      padding: 6px 15px;
+      border-radius: 25px;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .estado-pendiente { background: #fef3c7; color: #92400e; }
+    .estado-en_proceso { background: #dbeafe; color: #1e40af; }
+    .estado-terminado { background: #d1fae5; color: #065f46; }
+    .estado-entregado { background: #e0e7ff; color: #3730a3; }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: var(--in, #f8fafc);
+      border-radius: 16px;
+    }
+
+    .info-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .label {
+      font-size: 0.8rem;
+      color: var(--mut, #64748b);
+      margin-bottom: 5px;
+    }
+
+    .value {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .vencido {
+      color: var(--d, #f43f5e);
+    }
+
+    .prioridad-urgente { color: #f59e0b; }
+    .prioridad-emergencia { color: #f43f5e; }
+
+    .montos-section {
+      margin-bottom: 30px;
+    }
+
+    .montos-section h3 {
+      margin-bottom: 15px;
+    }
+
+    .montos-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .monto-item {
+      padding: 20px;
+      border-radius: 16px;
+      text-align: center;
+    }
+
+    .monto-item.total {
+      background: rgba(99, 102, 241, 0.1);
+      color: #6366f1;
+    }
+
+    .monto-item.abonado {
+      background: rgba(16, 185, 129, 0.1);
+      color: #10b981;
+    }
+
+    .monto-item.saldo {
+      background: rgba(244, 63, 94, 0.1);
+      color: #f43f5e;
+    }
+
+    .monto-item.saldo.pagado {
+      background: rgba(16, 185, 129, 0.1);
+      color: #10b981;
+    }
+
+    .monto-item span {
+      display: block;
+      font-size: 0.9rem;
+      margin-bottom: 8px;
+      opacity: 0.8;
+    }
+
+    .monto-item .cantidad {
+      font-size: 1.8rem;
+      font-weight: 800;
+    }
+
+    .pagos-section {
+      margin-bottom: 30px;
+    }
+
+    .pagos-section h3 {
+      margin-bottom: 15px;
+    }
+
+    .btn-add-pago {
+      background: var(--s, #10b981);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .pago-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px;
+      background: var(--in, #f8fafc);
+      border-radius: 12px;
+      margin-bottom: 10px;
+    }
+
+    .pago-info {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .pago-fecha {
+      font-size: 0.9rem;
+      color: var(--mut, #64748b);
+      min-width: 150px;
+    }
+
+    .pago-monto {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--s, #10b981);
+      min-width: 100px;
+    }
+
+    .pago-metodo {
+      font-size: 0.9rem;
+      padding: 4px 10px;
+      background: var(--surf, #ffffff);
+      border-radius: 20px;
+    }
+
+    .btn-delete {
+      width: 36px;
+      height: 36px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(244, 63, 94, 0.1);
+      color: #f43f5e;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-delete:hover {
+      background: #f43f5e;
+      color: white;
+    }
+
+    .no-pagos {
+      text-align: center;
+      padding: 30px;
+      color: var(--mut, #94a3b8);
+      font-style: italic;
+    }
+
+    .clieente-section {
+      margin-bottom: 30px;
+      padding: 20px;
+      background: var(--in, #f8fafc);
+      border-radius: 16px;
+    }
+
+    .cliente-section h3 {
+      margin-bottom: 10px;
+    }
+
+    .acciones {
+      display: flex;
+      gap: 15px;
+      justify-content: flex-end;
+    }
+
+    .btn-whatsapp {
+      background: #25D366;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-print {
+      background: #475569;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-edit {
+      background: #6366f1;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .loading-container {
+      display: flex;
+      justify-content: center;
+      padding: 60px;
+    }
+    .hora-detalle {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--mut, #64748b);
+  margin-top: 2px;
+}
+
+.pago-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-edit-pago {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  background: rgba(99, 102, 241, 0.1);
+  color: #6366f1;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-edit-pago:hover {
+  background: #6366f1;
+  color: white;
+}
+
+.btn-add-pago:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #94a3b8;
+}
+
+.btn-add-pago:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+.fecha-registro {
+  display: flex;
+  flex-direction: column;
+}
+
+.fecha-registro .fecha {
+  font-weight: 600;
+}
+
+.fecha-registro .hora-registro {
+  font-size: 0.9rem;
+  color: var(--mut, #64748b);
+  margin-top: 2px;
+}
+
+/* Asegurar que la hora de registro tenga el mismo estilo que la hora de límite */
+.hora-detalle {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--mut, #64748b);
+  margin-top: 2px;
+}
+.btn-pdf {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.btn-pdf:hover {
+  background: #c82333;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+/* Estilo para el modal de éxito */
+.whatsapp-success-popup {
+  border-radius: 24px !important;
+  padding: 20px !important;
+}
+
+.whatsapp-success-popup .swal2-html-container {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Mejorar botón de confirmación */
+.swal2-confirm.btn-whatsapp-confirm {
+  background: #25D366 !important;
+  font-weight: 600 !important;
+  padding: 12px 28px !important;
+  border-radius: 50px !important;
+  transition: all 0.2s !important;
+}
+
+.swal2-confirm.btn-whatsapp-confirm:hover {
+  background: #128C7E !important;
+  transform: translateY(-2px) !important;
+}
+.btn-preview {
+  background: #f59e0b;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.btn-preview:hover {
+  background: #d97706;
+  transform: translateY(-2px);
+}
+
+.btn-share {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.btn-share:hover {
+  background: #2563eb;
+  transform: translateY(-2px);
+}
+/* Agregar al orden-detalle.component.css */
+.btn-download {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.btn-download:hover {
+  background: #059669;
+  transform: translateY(-2px);
+}
+
+.btn-preview {
+  background: #f59e0b;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.btn-preview:hover {
+  background: #d97706;
+  transform: translateY(-2px);
+}

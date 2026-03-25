@@ -1,0 +1,125 @@
+<div class="reporte-container">
+  <div class="header">
+    <h1><i class="fas fa-gauge-high"></i> Reporte de Productividad</h1>
+    <div class="header-actions">
+      <button class="btn-filtros" (click)="mostrarFiltros = !mostrarFiltros">
+        <i class="fas fa-filter"></i> Filtros
+      </button>
+      <button class="btn-export" (click)="exportarExcel()">
+        <i class="fas fa-file-excel"></i> Exportar Excel
+      </button>
+      <button class="btn-secondary" routerLink="/reportes">
+        <i class="fas fa-arrow-left"></i> Volver
+      </button>
+    </div>
+  </div>
+
+  <!-- Panel de filtros -->
+  <div class="filtros-panel glass" *ngIf="mostrarFiltros">
+    <div class="filtros-grid">
+      <div class="filtro-group">
+        <label>Fecha desde</label>
+        <input type="date" [(ngModel)]="filtros.fechaInicio" class="form-control" (change)="aplicarFiltros()">
+      </div>
+      <div class="filtro-group">
+        <label>Fecha hasta</label>
+        <input type="date" [(ngModel)]="filtros.fechaFin" class="form-control" (change)="aplicarFiltros()">
+      </div>
+      <div class="filtro-group">
+        <label>Doctor</label>
+        <select [(ngModel)]="filtros.doctor" class="form-control" (change)="aplicarFiltros()">
+          <option value="">Todos los doctores</option>
+          <option *ngFor="let doctor of doctores" [value]="doctor">{{ doctor }}</option>
+        </select>
+      </div>
+      <div class="filtro-actions">
+        <button class="btn-clear" (click)="limpiarFiltros()">
+          <i class="fas fa-eraser"></i> Limpiar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tarjetas de resumen -->
+  <div class="resumen-grid">
+    <div class="resumen-card glass">
+      <span class="label">📊 Total Órdenes</span>
+      <span class="value">{{ resumen.totalCompletadas + resumen.totalPendientes }}</span>
+      <span class="sub">Completadas: {{ resumen.totalCompletadas }} | Pendientes: {{ resumen.totalPendientes }}</span>
+    </div>
+    <div class="resumen-card glass">
+      <span class="label">🎯 Eficiencia Global</span>
+      <span class="value">{{ resumen.eficiencia }}%</span>
+      <div class="progress-bar">
+        <div class="progress-fill" [style.width]="resumen.eficiencia + '%'"></div>
+      </div>
+    </div>
+    <div class="resumen-card glass">
+      <span class="label">📅 Completadas Este Mes</span>
+      <span class="value">{{ resumen.completadasMes }}</span>
+      <span class="sub">Órdenes terminadas en {{ getMesActual() }}</span>
+    </div>
+  </div>
+
+  <!-- Gráficos -->
+  <div class="charts-grid">
+    <div class="chart-card glass">
+      <h3>Órdenes por Estado</h3>
+      <canvas id="estadosChart" style="height: 250px;"></canvas>
+    </div>
+    <div class="chart-card glass">
+      <h3>Tendencia Mensual</h3>
+      <canvas id="tendenciaChart" style="height: 250px;"></canvas>
+    </div>
+  </div>
+
+  <!-- Tabla de rendimiento -->
+  <div class="tabla-card glass">
+    <h3>Rendimiento por Doctor</h3>
+    <div class="table-responsive">
+      <table class="reporte-table">
+        <thead>
+          <tr>
+            <th>Doctor</th>
+            <th>Completadas</th>
+            <th>Pendientes</th>
+            <th>Total</th>
+            <th>Eficiencia</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of rendimientoFiltrado">
+            <td class="doctor-cell">
+              <strong>{{ item.doctor }}</strong>
+            </td>
+            <td class="completadas">{{ item.completadas }}</td>
+            <td class="pendientes">{{ item.pendientes }}</td>
+            <td class="total">{{ item.completadas + item.pendientes }}</td>
+            <td class="eficiencia">
+              <div class="progress-bar-small">
+                <div class="progress-fill-small" [style.width]="item.eficiencia + '%'"></div>
+                <span>{{ item.eficiencia }}%</span>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="rendimientoFiltrado.length === 0">
+            <td colspan="6" class="empty-row">No hay datos para mostrar</td>
+          </tr>
+        </tbody>
+        <tfoot *ngIf="rendimientoFiltrado.length > 0">
+        <tr class="total-row">
+          <td><strong>TOTAL</strong></td>
+          <td><strong>{{ rendimientoFiltrado | sum:'completadas' }}</strong></td>
+          <td><strong>{{ rendimientoFiltrado | sum:'pendientes' }}</strong></td>
+          <td><strong>{{ (rendimientoFiltrado | sum:'completadas') + (rendimientoFiltrado | sum:'pendientes') }}</strong></td>
+          <td><strong>{{ calcularEficienciaTotal() }}%</strong></td>
+        </tr>
+      </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <div *ngIf="cargando" class="loading-container">
+    <app-loading-spinner></app-loading-spinner>
+  </div>
+</div>

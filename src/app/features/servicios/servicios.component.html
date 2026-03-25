@@ -1,0 +1,120 @@
+<div class="servicios-container">
+  <div class="header">
+    <div class="header-title">
+      <h1><i class="fas fa-tooth"></i> Servicios</h1>
+      <div class="header-stats" *ngIf="!cargando">
+        <span class="stat-badge total">
+          <i class="fas fa-database"></i> Total: {{ serviciosFiltrados.length }}
+        </span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input 
+          type="text" 
+          [(ngModel)]="busqueda" 
+          (ngModelChange)="filtrarServicios()"
+          placeholder="Buscar servicio..."
+          class="form-control"
+        >
+      </div>
+      <button class="btn-primary" routerLink="nuevo">
+        <i class="fas fa-plus"></i> Nuevo Servicio
+      </button>
+    </div>
+  </div>
+
+  <!-- TABLA DE SERVICIOS -->
+  <div class="table-container" *ngIf="!cargando">
+    <table class="servicios-table">
+      <thead>
+        <tr>
+          <th>Imagen</th>
+          <th>Nombre</th>
+          <th>Precio Referencial</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- En el tbody -->
+        <tr *ngFor="let servicio of serviciosPaginados">
+          <td class="imagen-cell">
+            <div class="servicio-imagen">
+              <app-image-zoom 
+                [src]="servicio.imagen_url"
+                [alt]="servicio.nombre"
+                defaultImage="assets/images/default-service.png">
+              </app-image-zoom>
+            </div>
+          </td>
+          <td class="nombre-cell">
+            <strong>{{ servicio.nombre }}</strong>
+          </td>
+          <td class="precio-cell">
+            <span *ngIf="servicio.precio_referencial" class="precio-valor">
+              {{ servicio.precio_referencial | moneda }}
+            </span>
+            <span *ngIf="!servicio.precio_referencial" class="text-muted">No definido</span>
+          </td>
+          <td class="actions-cell">
+            <div class="acciones-buttons">
+              <button class="btn-icon" [routerLink]="['editar', servicio.id]" title="Editar">
+                <i class="fas fa-pen-to-square"></i>
+              </button>
+              <button class="btn-icon btn-delete" (click)="eliminarServicio(servicio)" title="Eliminar">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- PAGINACIÓN -->
+    <div class="pagination-container" *ngIf="serviciosFiltrados.length > 0">
+      <div class="pagination-info">
+        Mostrando <strong>{{ serviciosPaginados.length }}</strong> de <strong>{{ serviciosFiltrados.length }}</strong> servicios
+      </div>
+      
+      <div class="pagination-controls">
+        <button class="pagination-btn" (click)="anteriorPagina()" [disabled]="paginaActual === 1">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        
+        <div class="pagination-pages">
+          <button *ngFor="let pagina of [].constructor(totalPaginas); let i = index"
+                  class="page-btn"
+                  [class.active]="paginaActual === i + 1"
+                  (click)="cambiarPagina(i + 1)">
+            {{ i + 1 }}
+          </button>
+        </div>
+        
+        <button class="pagination-btn" (click)="siguientePagina()" [disabled]="paginaActual === totalPaginas">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+        
+        <select #perPageSelect class="per-page-select" (change)="cambiarItemsPorPagina(perPageSelect.value)">
+          <option value="5" [selected]="itemsPorPagina === 5">5 por página</option>
+          <option value="10" [selected]="itemsPorPagina === 10">10 por página</option>
+          <option value="20" [selected]="itemsPorPagina === 20">20 por página</option>
+          <option value="50" [selected]="itemsPorPagina === 50">50 por página</option>
+        </select>
+      </div>
+    </div>
+
+    <div *ngIf="serviciosFiltrados.length === 0" class="empty-state">
+      <i class="fas fa-tooth"></i>
+      <h3>No hay servicios registrados</h3>
+      <p>Comienza agregando un nuevo servicio</p>
+      <button class="btn-primary" routerLink="nuevo">
+        <i class="fas fa-plus"></i> Agregar Servicio
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="cargando" class="loading-container">
+    <app-loading-spinner></app-loading-spinner>
+  </div>
+</div>

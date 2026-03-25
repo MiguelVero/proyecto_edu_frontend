@@ -1,0 +1,92 @@
+<div class="form-container">
+  <div class="header">
+    <h1>{{ esEdicion ? 'Editar' : 'Nuevo' }} Servicio</h1>
+    <button class="btn-secondary" routerLink="/servicios">
+      <i class="fas fa-arrow-left"></i> Volver
+    </button>
+  </div>
+
+  <form [formGroup]="servicioForm" (ngSubmit)="onSubmit()" class="form" enctype="multipart/form-data">
+    <!-- Información del servicio -->
+    <div class="form-section">
+      <h2 class="section-title">Información del Servicio</h2>
+      <div class="form-grid">
+        <div class="form-group full-width">
+          <label>Nombre del servicio <span class="required">*</span></label>
+          <input type="text" formControlName="nombre" class="form-control" 
+                 placeholder="Ej: Análisis Clínicos, Radiografía, etc.">
+          <div *ngIf="servicioForm.get('nombre')?.invalid && servicioForm.get('nombre')?.touched" class="text-danger">
+            <small *ngIf="servicioForm.get('nombre')?.errors?.['required']">El nombre es requerido</small>
+            <small *ngIf="servicioForm.get('nombre')?.errors?.['minlength']">Mínimo 3 caracteres</small>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Precio Referencial (S/)</label>
+          <div class="price-input-wrapper">
+            <span class="currency">S/</span>
+            <input type="number" formControlName="precio_referencial" class="form-control price-input" 
+                   step="0.01" min="0" placeholder="0.00">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Imagen del servicio -->
+    <div class="form-section">
+      <h2 class="section-title">Imagen del Servicio</h2>
+      
+      <div class="image-upload-container">
+        <!-- Preview de imagen -->
+        <div class="image-preview-card" *ngIf="previewUrl || imagenActual">
+          <div class="image-preview-wrapper">
+            <img [src]="previewUrl || (imagenActual ?? '') | imagen" 
+                 alt="Vista previa" 
+                 class="image-preview">
+            <button type="button" class="btn-remove-image" (click)="removerImagen()" 
+                    *ngIf="previewUrl || imagenActual" title="Eliminar imagen">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Controles de subida -->
+        <div class="upload-area" [class.has-image]="previewUrl || imagenActual">
+          <div class="file-input-wrapper">
+            <input type="file" 
+                   (change)="onFileSelected($event)" 
+                   accept="image/jpeg,image/png,image/gif,image/avif,image/webp"
+                   class="file-input"
+                   #fileInput>
+            
+            <button type="button" class="btn-upload" (click)="fileInput.click()">
+              <i class="fas fa-cloud-upload-alt"></i>
+              {{ (previewUrl || imagenActual) ? 'Cambiar imagen' : 'Seleccionar imagen' }}
+            </button>
+            
+            <span class="file-name">
+              {{ imagenSeleccionada?.name || (imagenActual ? 'Imagen actual' : 'Ningún archivo seleccionado') }}
+            </span>
+          </div>
+          
+          <div class="upload-hint">
+            <i class="fas fa-info-circle"></i>
+            <span>Formatos permitidos: JPG, PNG, GIF, AVIF, WEBP. Máximo 5MB</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Acciones -->
+    <div class="form-actions">
+      <button type="button" class="btn-secondary" routerLink="/servicios">
+        <i class="fas fa-times"></i>
+        Cancelar
+      </button>
+      <button type="submit" class="btn-primary" [disabled]="servicioForm.invalid">
+        <i class="fas" [ngClass]="esEdicion ? 'fa-sync-alt' : 'fa-save'"></i>
+        {{ esEdicion ? 'Actualizar Servicio' : 'Guardar Servicio' }}
+      </button>
+    </div>
+  </form>
+</div>

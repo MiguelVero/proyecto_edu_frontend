@@ -1,0 +1,126 @@
+<div class="doctores-container">
+  <div class="header">
+    <div class="header-title">
+      <h1><i class="fas fa-user-doctor"></i> Doctores</h1>
+      <div class="header-stats" *ngIf="!cargando">
+        <span class="stat-badge total">
+          <i class="fas fa-database"></i> Total: {{ doctoresFiltrados.length }}
+        </span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input 
+          type="text" 
+          [(ngModel)]="busqueda" 
+          (ngModelChange)="filtrarDoctores()"
+          placeholder="Buscar por nombre o teléfono..."
+          class="form-control"
+        >
+      </div>
+      <button class="btn-primary" routerLink="nuevo">
+        <i class="fas fa-plus"></i> Nuevo Doctor
+      </button>
+    </div>
+  </div>
+
+  <!-- TABLA DE DOCTORES -->
+  <div class="table-container" *ngIf="!cargando">
+    <table class="doctores-table">
+      <thead>
+        <tr>
+          <th>Logo</th>
+          <th>Nombre</th>
+          <th>Teléfono WhatsApp</th>
+          <th>Órdenes</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- En el tbody -->
+<tr *ngFor="let doctor of doctoresPaginados">
+  <td class="logo-cell">
+    <img [src]="doctor.logo_url | imagen:'assets/images/default-doctor.png'" 
+         [alt]="doctor.nombre"
+         class="doctor-thumb">
+  </td>
+  <td class="nombre-cell">
+    <strong>{{ doctor.nombre }}</strong>
+  </td>
+  <td class="telefono-cell">
+    <a *ngIf="doctor.telefono_whatsapp" 
+       [href]="'https://wa.me/' + (doctor.telefono_whatsapp | telefono)" 
+       target="_blank"
+       class="whatsapp-link">
+      <i class="fab fa-whatsapp"></i> {{ doctor.telefono_whatsapp }}
+    </a>
+    <span *ngIf="!doctor.telefono_whatsapp" class="text-muted">No registrado</span>
+  </td>
+  <td class="ordenes-cell">
+    <span class="badge-ordenes">{{ doctor.ordenes?.length || 0 }}</span>
+  </td>
+  <td class="actions-cell">
+    <div class="acciones-buttons">
+      <button class="btn-icon" [routerLink]="[doctor.id]" title="Ver detalles">
+        <i class="fas fa-eye"></i>
+      </button>
+      <button class="btn-icon" [routerLink]="['editar', doctor.id]" title="Editar">
+        <i class="fas fa-pen-to-square"></i>
+      </button>
+      <button class="btn-icon btn-delete" (click)="eliminarDoctor(doctor)" title="Eliminar">
+        <i class="fas fa-trash"></i>
+      </button>
+    </div>
+  </td>
+</tr>
+      </tbody>
+    </table>
+
+    <!-- PAGINACIÓN -->
+    <div class="pagination-container" *ngIf="doctoresFiltrados.length > 0">
+      <div class="pagination-info">
+        Mostrando <strong>{{ doctoresPaginados.length }}</strong> de <strong>{{ doctoresFiltrados.length }}</strong> doctores
+      </div>
+      
+      <div class="pagination-controls">
+        <button class="pagination-btn" (click)="anteriorPagina()" [disabled]="paginaActual === 1">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        
+        <div class="pagination-pages">
+          <button *ngFor="let pagina of [].constructor(totalPaginas); let i = index"
+                  class="page-btn"
+                  [class.active]="paginaActual === i + 1"
+                  (click)="cambiarPagina(i + 1)">
+            {{ i + 1 }}
+          </button>
+        </div>
+        
+        <button class="pagination-btn" (click)="siguientePagina()" [disabled]="paginaActual === totalPaginas">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+        
+        <select #perPageSelect class="per-page-select" (change)="cambiarItemsPorPagina(perPageSelect.value)">
+          <option value="5" [selected]="itemsPorPagina === 5">5 por página</option>
+          <option value="10" [selected]="itemsPorPagina === 10">10 por página</option>
+          <option value="20" [selected]="itemsPorPagina === 20">20 por página</option>
+          <option value="50" [selected]="itemsPorPagina === 50">50 por página</option>
+        </select>
+      </div>
+    </div>
+
+    <div *ngIf="doctoresFiltrados.length === 0" class="empty-state">
+      <i class="fas fa-user-doctor"></i>
+      <h3>No hay doctores registrados</h3>
+      <p>Comienza agregando un nuevo doctor</p>
+      <button class="btn-primary" routerLink="nuevo">
+        <i class="fas fa-plus"></i> Agregar Doctor
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="cargando" class="loading-container">
+    <app-loading-spinner></app-loading-spinner>
+  </div>
+</div>

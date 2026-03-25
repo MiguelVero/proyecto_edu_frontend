@@ -1,0 +1,59 @@
+<div class="dashboard-container">
+  <div class="header">
+    <h1><i class="fas fa-chart-pie"></i> Dashboard</h1>
+    <span class="timestamp">Actualizado: {{ stats.timestamp | date:'short' }}</span>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card glass">
+      <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1)">
+        <i class="fas fa-clipboard-list" style="color: #10b981"></i>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">Órdenes Activas</span>
+        <span class="stat-value">{{ stats.ordenes_activas || 0 }}</span>
+      </div>
+    </div>
+
+    <div class="stat-card glass">
+      <div class="stat-icon" style="background: rgba(244, 63, 94, 0.1)">
+        <i class="fas fa-clock" style="color: #f43f5e"></i>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">Vencidas</span>
+        <span class="stat-value">{{ stats.ordenes_vencidas || 0 }}</span>
+      </div>
+    </div>
+
+    <div class="stat-card glass">
+      <div class="stat-icon" style="background: rgba(99, 102, 241, 0.1)">
+        <i class="fas fa-money-bill-wave" style="color: #6366f1"></i>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">Caja Hoy</span>
+        <span class="stat-value">S/ {{ stats.caja_hoy | number:'1.2-2' }}</span>
+      </div>
+    </div>
+
+    <div class="stat-card glass">
+      <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1)">
+        <i class="fas fa-wallet" style="color: #f59e0b"></i>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">Caja Semana</span>
+        <span class="stat-value">S/ {{ stats.caja_semana | number:'1.2-2' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="charts-row">
+    <div class="chart-card glass">
+      <h3>Distribución de Órdenes</h3>
+      <canvas id="estadosChart"></canvas>
+    </div>
+    <div class="chart-card glass">
+      <h3>Ingresos Mensuales</h3>
+      <canvas id="ingresosChart"></canvas>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,79 @@
+<div class="detalle-container">
+  <div class="header">
+    <h1><i class="fas fa-user-doctor"></i> Detalle del Doctor</h1>
+    <button class="btn-secondary" routerLink="/doctores">
+      <i class="fas fa-arrow-left"></i> Volver
+    </button>
+  </div>
+
+  <div *ngIf="cargando" class="loading-container">
+    <app-loading-spinner></app-loading-spinner>
+  </div>
+
+  <div *ngIf="!cargando && doctor" class="detalle-content">
+    <div class="info-card glass">
+      <div class="doctor-header">
+        <img [src]="doctor.logo_url | imagen:'assets/images/default-doctor.png'" 
+             [alt]="doctor.nombre"
+             class="doctor-logo-large">
+        <div class="doctor-titulo">
+          <h2>{{ doctor.nombre }}</h2>
+          <p *ngIf="doctor.telefono_whatsapp" class="contacto">
+            <i class="fab fa-whatsapp whatsapp"></i> {{ doctor.telefono_whatsapp }}
+          </p>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-item">
+          <span class="stat-label">Total Órdenes</span>
+          <span class="stat-value">{{ resumen?.total_ordenes || 0 }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Pendientes</span>
+          <span class="stat-value">{{ resumen?.ordenes_pendientes || 0 }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Deuda Total</span>
+          <span class="stat-value" [ngClass]="{'deuda-positiva': (resumen?.deuda_total || 0) > 0, 'deuda-cero': (resumen?.deuda_total || 0) === 0}">
+            {{ resumen?.deuda_total | moneda }}
+          </span>
+        </div>
+      </div>
+
+      <div *ngIf="doctor.direccion" class="info-row">
+        <i class="fas fa-map-marker-alt"></i>
+        <span>{{ doctor.direccion }}</span>
+      </div>
+
+      <div *ngIf="doctor.notas" class="notas">
+        <h3>Notas</h3>
+        <p>{{ doctor.notas }}</p>
+      </div>
+
+      <div class="acciones">
+        <button class="btn-whatsapp" (click)="enviarWhatsApp()" [disabled]="!doctor.telefono_whatsapp">
+          <i class="fab fa-whatsapp"></i> Enviar Mensaje
+        </button>
+        <button class="btn-edit" [routerLink]="['/doctores/editar', doctor.id]">
+          <i class="fas fa-pen-to-square"></i> Editar
+        </button>
+      </div>
+    </div>
+
+    <div class="ordenes-section">
+      <h3>Últimas Órdenes</h3>
+      <div *ngIf="doctor.ordenes?.length === 0" class="no-ordenes">
+        No hay órdenes registradas
+      </div>
+      <div *ngFor="let orden of doctor.ordenes" class="orden-item" [ngClass]="{'orden-terminada': orden.estado === 'terminado'}">
+        <span class="orden-fecha">{{ orden.fecha_registro | fecha:'dd/MM/yy' }}</span>
+        <span class="orden-servicio">{{ orden.servicio?.nombre || 'Sin servicio' }}</span>
+        <span class="orden-total">{{ orden.total | moneda }}</span>
+        <span class="orden-estado" [ngClass]="'estado-' + orden.estado">
+          {{ orden.estado }}
+        </span>
+      </div>
+    </div>
+  </div>
+</div>

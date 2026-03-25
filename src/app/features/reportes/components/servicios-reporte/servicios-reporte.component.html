@@ -1,0 +1,52 @@
+ <div class="reporte-container">
+      <div class="header">
+        <h1><i class="fas fa-tooth"></i> Reporte por Servicio</h1>
+        <div class="header-actions">
+          <button class="btn-export" (click)="exportarExcel()">
+            <i class="fas fa-file-excel"></i> Exportar Excel
+          </button>
+          <button class="btn-secondary" routerLink="/reportes">
+            <i class="fas fa-arrow-left"></i> Volver
+          </button>
+        </div>
+      </div>
+
+      <div class="charts-grid">
+        <div class="chart-card glass">
+          <h3>Servicios más solicitados</h3>
+          <canvas id="serviciosChart"></canvas>
+        </div>
+        <div class="chart-card glass">
+          <h3>Ingresos por Servicio</h3>
+          <canvas id="ingresosChart"></canvas>
+        </div>
+      </div>
+
+      <div class="tabla-card glass">
+        <h3>Detalle por Servicio</h3>
+        <div class="table-responsive">
+          <table class="reporte-table">
+            <thead>
+              <tr>
+                <th>Servicio</th>
+                <th>Cantidad</th>
+                <th>Total Facturado</th>
+                <th>Precio Promedio</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let servicio of servicios">
+                <td>{{ servicio.nombre }}</td>
+                <td class="numero">{{ servicio.cantidad }}</td>
+                <td class="monto">{{ servicio.total_facturado | moneda }}</td>
+                <td class="monto">{{ servicio.precio_promedio | moneda }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div *ngIf="cargando" class="loading-container">
+        <app-loading-spinner></app-loading-spinner>
+      </div>
+    </div>
