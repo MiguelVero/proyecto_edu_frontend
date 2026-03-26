@@ -479,10 +479,7 @@ enviarWhatsApp(orden: any) {
     datos: orden
   });
 }
-// En ordenes.component.ts, después del método enviarWhatsApp
-verTicket(orden: any) {
-  this.ticketService.imprimirTicket(orden);
-}
+
 
 // Agregar este método después de verTicket
 eliminarOrden(orden: any) {
