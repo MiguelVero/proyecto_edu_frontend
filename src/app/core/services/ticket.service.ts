@@ -302,9 +302,6 @@ export class TicketService {
               <button class="action-button btn-download-img" onclick="descargarComoImagen()">
                 📸 Descargar como Imagen
               </button>
-              <button class="action-button btn-download-pdf" onclick="descargarComoPDF()">
-                📄 Descargar como PDF
-              </button>
               <button class="action-button btn-print" onclick="window.print()">
                 🖨️ Imprimir
               </button>
