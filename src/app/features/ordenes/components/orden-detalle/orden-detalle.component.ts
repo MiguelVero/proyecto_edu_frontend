@@ -26,6 +26,7 @@ export class OrdenDetalleComponent implements OnInit, OnDestroy {
   cargando = true;
   totalPagado = 0;
   saldo = 0;
+  fechaServidorHoy: string = '';  // <-- AGREGAR ESTA LÍNEA
   private subscriptions: Subscription[] = [];
 
   constructor(
@@ -37,7 +38,33 @@ export class OrdenDetalleComponent implements OnInit, OnDestroy {
     private whatsAppService: WhatsAppService
   ) {}
 
-  ngOnInit() {
+ ngOnInit() {
+    // Primero obtener la fecha del servidor
+    this.subscriptions.push(
+      this.ordenService.getFechaServidor().subscribe({
+        next: (fechaRespuesta) => {
+          this.fechaServidorHoy = fechaRespuesta.fecha;
+          console.log('📅 Detalle - Fecha del servidor:', this.fechaServidorHoy);
+          
+          // Luego cargar la orden
+          this.cargarOrdenDesdeParams();
+        },
+        error: (error) => {
+          console.error('Error obteniendo fecha del servidor:', error);
+          // Usar fecha local como respaldo
+          const hoy = new Date();
+          this.fechaServidorHoy = hoy.toISOString().split('T')[0];
+          console.log('📅 Detalle - Usando fecha local:', this.fechaServidorHoy);
+          
+          // Cargar la orden igualmente
+          this.cargarOrdenDesdeParams();
+        }
+      })
+    );
+  }
+
+    // Nuevo método para cargar la orden después de tener la fecha
+  private cargarOrdenDesdeParams() {
     this.subscriptions.push(
       this.route.params.subscribe(params => {
         if (params['id']) {
@@ -65,16 +92,33 @@ export class OrdenDetalleComponent implements OnInit, OnDestroy {
     );
   }
 
+  // MODIFICAR isVencida para usar la fecha del servidor
   isVencida(): boolean {
     if (!this.orden?.fecha_limite || this.orden.estado === 'terminado') return false;
-    const hoy = new Date();
-    const limite = new Date(this.orden.fecha_limite);
-    hoy.setHours(0, 0, 0, 0);
-    limite.setHours(0, 0, 0, 0);
-    return hoy >= limite;
+    
+    const saldo = this.saldo;
+    if (saldo <= 0) return false;
+    
+    // Usar la fecha del servidor (en formato YYYY-MM-DD)
+    const hoyStr = this.fechaServidorHoy;
+    const limiteStr = this.orden.fecha_limite;
+    
+    // Si por alguna razón no tenemos la fecha del servidor, usar la fecha local
+    if (!hoyStr) {
+      const hoyLocal = new Date();
+      const hoyLocalStr = hoyLocal.toISOString().split('T')[0];
+      return limiteStr <= hoyLocalStr;
+    }
+    
+    // Log para depurar (opcional)
+    if (this.orden.id === 14) {
+      console.log(`📊 Detalle orden #14: ${limiteStr} <= ${hoyStr} = ${limiteStr <= hoyStr}`);
+    }
+    
+    return limiteStr <= hoyStr;
   }
 
-  calcularPagos() {
+   calcularPagos() {
     if (this.orden?.pagos) {
       this.totalPagado = Number(this.orden.pagos.reduce((sum: number, p: any) => sum + Number(p.monto), 0)) || 0;
       this.saldo = Number(Number(this.orden.total) - this.totalPagado) || 0;
