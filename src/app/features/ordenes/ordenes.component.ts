@@ -104,47 +104,58 @@ ngOnInit() {
   // Restaurar filtros guardados
   this.restaurarFiltros();
 
-  // Obtener la fecha del servidor primero
+  // Obtener la fecha del servidor PRIMERO
   this.subscriptions.push(
     this.ordenService.getFechaServidor().subscribe({
       next: (fechaRespuesta) => {
         this.fechaServidorHoy = fechaRespuesta.fecha;
         console.log('📅 Fecha del servidor:', this.fechaServidorHoy);
         
-        // Luego cargar las órdenes
-        this.ordenService.getOrdenes().subscribe({
-          next: (data) => {
-            this.ordenes = data;
-            this.extraerOpcionesFiltros();
-            this.filtrarOrdenes();
-            this.cargando = false;
-          },
-          error: (error) => {
-            console.error('Error cargando órdenes:', error);
-            this.cargando = false;
-          }
-        });
+        // AHORA cargar las órdenes
+        this.cargarOrdenesConFecha();
       },
       error: (error) => {
         console.error('Error obteniendo fecha del servidor:', error);
-        // Si falla, usar fecha local como respaldo
+        // Usar fecha local como respaldo
         const hoy = new Date();
         this.fechaServidorHoy = hoy.toISOString().split('T')[0];
         console.log('📅 Usando fecha local como respaldo:', this.fechaServidorHoy);
         
-        // Continuar cargando órdenes
-        this.ordenService.getOrdenes().subscribe({
-          next: (data) => {
-            this.ordenes = data;
-            this.extraerOpcionesFiltros();
-            this.filtrarOrdenes();
-            this.cargando = false;
-          },
-          error: (error) => {
-            console.error('Error cargando órdenes:', error);
-            this.cargando = false;
-          }
-        });
+        // Cargar órdenes igualmente
+        this.cargarOrdenesConFecha();
+      }
+    })
+  );
+}
+
+// Nuevo método para cargar órdenes después de tener la fecha
+private cargarOrdenesConFecha() {
+  this.subscriptions.push(
+    this.ordenService.getOrdenes().subscribe({
+      next: (data) => {
+        this.ordenes = data;
+        console.log('📋 Órdenes cargadas:', this.ordenes.length);
+        
+        // Log para depurar la orden #14
+        const orden14 = this.ordenes.find(o => o.id === 14);
+        if (orden14) {
+          console.log('🔍 Orden #14:', {
+            id: orden14.id,
+            fecha_limite: orden14.fecha_limite,
+            fechaServidor: this.fechaServidorHoy,
+            saldo: this.calcularSaldo(orden14),
+            isVencida: this.isVencida(orden14),
+            estado: orden14.estado
+          });
+        }
+        
+        this.extraerOpcionesFiltros();
+        this.filtrarOrdenes();
+        this.cargando = false;
+      },
+      error: (error) => {
+        console.error('Error cargando órdenes:', error);
+        this.cargando = false;
       }
     })
   );
@@ -185,14 +196,15 @@ ngOnInit() {
   /**
    * Guardar filtros en localStorage
    */
-  private guardarFiltros() {
-    try {
-      localStorage.setItem(this.FILTROS_STORAGE_KEY, JSON.stringify(this.filtros));
-      localStorage.setItem(this.FILTROS_VISIBLES_KEY, String(this.mostrarFiltrosAvanzados));
-    } catch (error) {
-      console.error('Error guardando filtros:', error);
-    }
+private guardarFiltros() {
+  try {
+    console.log('💾 Guardando filtros - vencidas:', this.filtros.vencidas, 'fechaServidor:', this.fechaServidorHoy);
+    localStorage.setItem(this.FILTROS_STORAGE_KEY, JSON.stringify(this.filtros));
+    localStorage.setItem(this.FILTROS_VISIBLES_KEY, String(this.mostrarFiltrosAvanzados));
+  } catch (error) {
+    console.error('Error guardando filtros:', error);
   }
+}
 
 
 // Modificar extraerOpcionesFiltros
@@ -295,20 +307,32 @@ onServicioSeleccionado(servicio: any) {
       if (this.filtros.saldoMax !== null && saldo > this.filtros.saldoMax) {
         return false;
       }
-
-     // Filtro solo vencidas - MODIFICADO
       // Filtro solo vencidas
-      if (this.filtros.vencidas) {
-        // Una orden es vencida si: está pendiente, tiene saldo > 0 y la fecha límite es <= hoy
-        const saldo = this.calcularSaldo(orden);
-        if (orden.estado !== 'pendiente' || saldo <= 0) {
-          return false;
-        }
-        // Usamos la función isVencida mejorada con fecha del servidor
-        if (!this.isVencida(orden)) {
-          return false;
-        }
-      }
+if (this.filtros.vencidas) {
+  // Log para depurar
+  if (orden.id === 14) {
+    console.log('🔍 Orden #14 pasando por filtro vencidas');
+  }
+  
+  // Una orden es vencida si: está pendiente, tiene saldo > 0 y la fecha límite es <= hoy
+  const saldo = this.calcularSaldo(orden);
+  if (orden.estado !== 'pendiente' || saldo <= 0) {
+    if (orden.id === 14) {
+      console.log('❌ Orden #14 descartada por estado o saldo:', { estado: orden.estado, saldo });
+    }
+    return false;
+  }
+  
+  // Usamos la función isVencida mejorada con fecha del servidor
+  const esVencida = this.isVencida(orden);
+  if (orden.id === 14) {
+    console.log('📊 Orden #14 esVencida =', esVencida);
+  }
+  
+  if (!esVencida) {
+    return false;
+  }
+}
 
 
 
@@ -412,11 +436,16 @@ isVencida(orden: any): boolean {
   if (!hoyStr) {
     const hoyLocal = new Date();
     const hoyLocalStr = hoyLocal.toISOString().split('T')[0];
+    console.warn('⚠️ Usando fecha local como respaldo:', hoyLocalStr);
     return limiteStr <= hoyLocalStr;
   }
   
-  // Comparar como strings. Si la fecha límite es menor o igual a hoy, está vencida.
-  // Esto evita cualquier problema de zona horaria porque comparamos strings.
+  // Log para depurar la orden #14
+  if (orden.id === 14) {
+    console.log(`📊 Comparación orden #14: ${limiteStr} <= ${hoyStr} = ${limiteStr <= hoyStr}`);
+  }
+  
+  // Comparar como strings
   return limiteStr <= hoyStr;
 }
   // Método para agregar pago
