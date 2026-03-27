@@ -17,6 +17,7 @@ import { SearchableSelectComponent } from '../../shared/components/searchable-se
 import { TicketService } from '../../core/services/ticket.service';
 import { WhatsAppService } from '../../core/services/whatsapp.service';
 import { saveAs } from 'file-saver';
+import { HttpClient } from '@angular/common/http'; // <-- AGREGAR ESTO
 @Component({
   selector: 'app-ordenes',
   standalone: true,
@@ -47,6 +48,7 @@ paginaActual: number = 1;
 itemsPorPagina: number = 5;
 totalPaginas: number = 1;
 ordenesPaginadas: any[] = [];
+fechaServidorHoy: string = '';
     // Filtros avanzados
   filtros = {
     busquedaGlobal: '',
@@ -92,26 +94,57 @@ constructor(
   private authService: AuthService,
   private monedaPipe: MonedaPipe, // <-- AGREGAR ESTO
   private ticketService: TicketService,
-  private whatsAppService: WhatsAppService // <-- AGREGAR ESTO
+  private whatsAppService: WhatsAppService, // <-- AGREGAR ESTO
+   private http: HttpClient  // <-- AGREGAR ESTO
 ) {}
 
 
 
 ngOnInit() {
   // Restaurar filtros guardados
-    this.restaurarFiltros();
+  this.restaurarFiltros();
 
+  // Obtener la fecha del servidor primero
   this.subscriptions.push(
-    this.ordenService.getOrdenes().subscribe({
-      next: (data) => {
-        this.ordenes = data;
-        this.extraerOpcionesFiltros(); // <-- AGREGAR ESTA LÍNEA
-        this.filtrarOrdenes();
-        this.cargando = false;
+    this.ordenService.getFechaServidor().subscribe({
+      next: (fechaRespuesta) => {
+        this.fechaServidorHoy = fechaRespuesta.fecha;
+        console.log('📅 Fecha del servidor:', this.fechaServidorHoy);
+        
+        // Luego cargar las órdenes
+        this.ordenService.getOrdenes().subscribe({
+          next: (data) => {
+            this.ordenes = data;
+            this.extraerOpcionesFiltros();
+            this.filtrarOrdenes();
+            this.cargando = false;
+          },
+          error: (error) => {
+            console.error('Error cargando órdenes:', error);
+            this.cargando = false;
+          }
+        });
       },
       error: (error) => {
-        console.error('Error cargando órdenes:', error);
-        this.cargando = false;
+        console.error('Error obteniendo fecha del servidor:', error);
+        // Si falla, usar fecha local como respaldo
+        const hoy = new Date();
+        this.fechaServidorHoy = hoy.toISOString().split('T')[0];
+        console.log('📅 Usando fecha local como respaldo:', this.fechaServidorHoy);
+        
+        // Continuar cargando órdenes
+        this.ordenService.getOrdenes().subscribe({
+          next: (data) => {
+            this.ordenes = data;
+            this.extraerOpcionesFiltros();
+            this.filtrarOrdenes();
+            this.cargando = false;
+          },
+          error: (error) => {
+            console.error('Error cargando órdenes:', error);
+            this.cargando = false;
+          }
+        });
       }
     })
   );
@@ -264,10 +297,15 @@ onServicioSeleccionado(servicio: any) {
       }
 
      // Filtro solo vencidas - MODIFICADO
+      // Filtro solo vencidas
       if (this.filtros.vencidas) {
-        // Solo mostrar órdenes pendientes, con saldo > 0, y que estén vencidas
+        // Una orden es vencida si: está pendiente, tiene saldo > 0 y la fecha límite es <= hoy
         const saldo = this.calcularSaldo(orden);
-        if (orden.estado !== 'pendiente' || saldo <= 0 || !this.isVencida(orden)) {
+        if (orden.estado !== 'pendiente' || saldo <= 0) {
+          return false;
+        }
+        // Usamos la función isVencida mejorada con fecha del servidor
+        if (!this.isVencida(orden)) {
           return false;
         }
       }
@@ -366,17 +404,21 @@ isVencida(orden: any): boolean {
   // Si el saldo es 0, no está vencida (está pagada)
   if (saldo <= 0) return false;
   
-  const hoy = new Date();
-  const limite = new Date(orden.fecha_limite);
+  // Usar la fecha del servidor (en formato YYYY-MM-DD)
+  const hoyStr = this.fechaServidorHoy;
+  const limiteStr = orden.fecha_limite;
   
-  // Comparar solo la fecha (sin hora)
-  hoy.setHours(0, 0, 0, 0);
-  limite.setHours(0, 0, 0, 0);
+  // Si por alguna razón no tenemos la fecha del servidor, usar la fecha local
+  if (!hoyStr) {
+    const hoyLocal = new Date();
+    const hoyLocalStr = hoyLocal.toISOString().split('T')[0];
+    return limiteStr <= hoyLocalStr;
+  }
   
-  // Incluir órdenes con fecha límite igual a hoy
-  return hoy >= limite;  // <-- CAMBIADO: >= en lugar de >
+  // Comparar como strings. Si la fecha límite es menor o igual a hoy, está vencida.
+  // Esto evita cualquier problema de zona horaria porque comparamos strings.
+  return limiteStr <= hoyStr;
 }
-
   // Método para agregar pago
 agregarPago(orden: any) {
   // Calcular el saldo actual de esta orden
@@ -547,32 +589,44 @@ private descargarPDF(orden: any, pdfBlob: Blob) {
   });
 }
 
-// AGREGAR ESTOS MÉTODOS (después de los métodos existentes)
+// Reemplaza el método setFiltroEstado
 setFiltroEstado(estado: string) {
+  // 1. Si estamos seleccionando un estado, desactivamos el filtro de vencidas.
+  // Esto asegura que no se mezclen los filtros.
+  if (this.filtros.vencidas) {
+    this.filtros.vencidas = false;
+  }
+  // 2. Asignamos el estado
   this.filtros.estado = estado;
   this.paginaActual = 1;
   
-  // Si el usuario selecciona "Terminados", desactivar el filtro de vencidas
+  // 3. Si seleccionamos "terminado", aseguramos que ocultarTerminadas sea false.
   if (estado === 'terminado') {
-    this.filtros.vencidas = false;
     this.filtros.ocultarTerminadas = false;
   }
-  // Si el usuario selecciona "Pendientes"
+  // 4. Si seleccionamos "pendiente", aseguramos que ocultarTerminadas sea true.
   else if (estado === 'pendiente') {
-    // Mantener el filtro de vencidas si estaba activo
     this.filtros.ocultarTerminadas = true;
   }
   
   this.filtrarOrdenes();
 }
+
+// Reemplaza el método toggleFiltroVencidas
 toggleFiltroVencidas() {
+  // 1. Invertimos el estado del filtro de vencidas
   this.filtros.vencidas = !this.filtros.vencidas;
   this.paginaActual = 1;
   
-  // Si se activa el filtro de vencidas, asegurar que el estado no sea 'terminado'
-  if (this.filtros.vencidas && this.filtros.estado === 'terminado') {
-    this.filtros.estado = 'pendiente';
+  // 2. Si activamos el filtro de vencidas, debemos limpiar el filtro de estado.
+  // Esto evita que se muestren ambos como activos.
+  if (this.filtros.vencidas) {
+    this.filtros.estado = '';
   }
+  
+  // 3. Aseguramos que el filtro ocultarTerminadas se comporte correctamente.
+  // Cuando vemos vencidas, solo queremos ver órdenes pendientes con deuda, por lo que ocultamos las terminadas.
+  this.filtros.ocultarTerminadas = true;
   
   this.filtrarOrdenes();
 }

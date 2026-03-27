@@ -104,4 +104,7 @@ export class OrdenService {
       })
     );
   }
+  getFechaServidor(): Observable<{ fecha: string }> {
+  return this.http.get<{ fecha: string }>(`${this.apiUrl}/server-time`); // Necesitas crear este endpoint en el backend
+}
 }
