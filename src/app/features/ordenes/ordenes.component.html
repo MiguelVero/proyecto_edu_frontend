@@ -148,14 +148,6 @@
                   class="small-zoom">
                 </app-image-zoom>
               </div>
-              <div class="service-icon" *ngIf="orden.servicio?.imagen_url">
-                <app-image-zoom 
-                  [src]="orden.servicio?.imagen_url"
-                  [alt]="orden.servicio?.nombre"
-                  defaultImage="assets/images/default-service.png"
-                  class="small-zoom">
-                </app-image-zoom>
-              </div>
             </div>
             <div class="doctor-info">
               <strong>{{ orden.doctor?.nombre }}</strong>
