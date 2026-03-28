@@ -7,12 +7,16 @@ import { ImagenPipe } from '../../pipes/imagen.pipe';
   standalone: true,
   imports: [CommonModule, ImagenPipe],
   template: `
-    <div class="image-wrapper" (click)="openZoom()" [class.has-image]="src">
+    <div class="image-wrapper" (click)="openZoom()" [class.has-image]="src" [class.no-image]="!src">
       <img [src]="src | imagen:defaultImage" 
            [alt]="alt"
            class="thumbnail-image"
            loading="lazy"
            (error)="onImageError()">
+      <div class="image-overlay" *ngIf="src">
+        <i class="fas fa-search-plus"></i>
+        <span>Ampliar</span>
+      </div>
     </div>
 
     <!-- Modal para zoom -->
@@ -36,6 +40,7 @@ import { ImagenPipe } from '../../pipes/imagen.pipe';
   `,
   styles: [`
     .image-wrapper {
+      position: relative;
       width: 100%;
       height: 100%;
       cursor: pointer;
@@ -51,19 +56,49 @@ import { ImagenPipe } from '../../pipes/imagen.pipe';
       background: transparent;
     }
 
+    .image-wrapper.no-image {
+      background: var(--in, #f1f5f9);
+    }
+
     .thumbnail-image {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
-      transition: transform 0.2s;
+      transition: transform 0.3s ease;
+    }
+
+    .image-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      color: white;
+      font-size: 0.85rem;
+    }
+
+    .image-overlay i {
+      font-size: 1.5rem;
+    }
+
+    .image-wrapper:hover .image-overlay {
+      opacity: 1;
     }
 
     .image-wrapper:hover .thumbnail-image {
       transform: scale(1.05);
     }
 
-    /* Modal styles mejorados */
+    /* Modal styles */
     .zoom-modal {
       position: fixed;
       top: 0;
@@ -173,7 +208,7 @@ import { ImagenPipe } from '../../pipes/imagen.pipe';
       }
     }
 
-    /* Responsive para móvil */
+    /* Responsive */
     @media (max-width: 768px) {
       .close-button {
         top: 10px;
@@ -193,6 +228,14 @@ import { ImagenPipe } from '../../pipes/imagen.pipe';
         font-size: 0.9rem;
         padding: 6px 12px;
       }
+      
+      .image-overlay span {
+        display: none;
+      }
+      
+      .image-overlay i {
+        font-size: 1.2rem;
+      }
     }
   `]
 })
@@ -205,8 +248,10 @@ export class ImageZoomComponent {
   isPortrait = false;
 
   openZoom() {
-    this.showZoom = true;
-    document.body.style.overflow = 'hidden';
+    if (this.src) {
+      this.showZoom = true;
+      document.body.style.overflow = 'hidden';
+    }
   }
 
   closeZoom() {
@@ -215,7 +260,6 @@ export class ImageZoomComponent {
   }
 
   onImageLoaded() {
-    // Detectar si la imagen es vertical para ajustar el estilo
     const img = document.querySelector('.zoomed-image') as HTMLImageElement;
     if (img) {
       this.isPortrait = img.naturalHeight > img.naturalWidth;

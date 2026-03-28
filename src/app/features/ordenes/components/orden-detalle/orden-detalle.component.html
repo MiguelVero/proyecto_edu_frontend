@@ -27,6 +27,23 @@
             </span>
           </div>
 
+           <!-- NUEVA SECCIÓN: Imagen de referencia del servicio -->
+      <div class="servicio-imagen-section" *ngIf="orden.servicio?.imagen_url">
+        <div class="servicio-imagen-header">
+          <i class="fas fa-image"></i>
+          <h3>Referencia del Servicio</h3>
+        </div>
+        <div class="servicio-imagen-container">
+          <app-image-zoom 
+            [src]="orden.servicio?.imagen_url"
+            [alt]="orden.servicio?.nombre"
+            defaultImage="assets/images/default-service.png"
+            class="servicio-zoom">
+          </app-image-zoom>
+          <p class="servicio-imagen-caption">{{ orden.servicio?.nombre }}</p>
+        </div>
+      </div>
+
           <div class="info-grid">
             <div class="info-item">
               <span class="label">Orden #</span>
