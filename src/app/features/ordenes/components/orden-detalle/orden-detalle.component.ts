@@ -13,11 +13,21 @@ import Swal from 'sweetalert2';
 import { ImagenPipe } from '../../../../shared/pipes/imagen.pipe';
 import { WhatsAppService } from '../../../../core/services/whatsapp.service';
 import { ImageZoomComponent } from '../../../../shared/components/image-zoom/image-zoom.component';
-import { ServicioService } from '../../../../core/services/servicio.service'; // <-- IMPORTAR
+import { ServicioService } from '../../../../core/services/servicio.service';
+
 @Component({
   selector: 'app-orden-detalle',
   standalone: true,
-  imports: [CommonModule, RouterModule, MonedaPipe, FechaPipe, LoadingSpinnerComponent, ImagenPipe, HoraPipe, ImageZoomComponent ],
+  imports: [
+    CommonModule, 
+    RouterModule, 
+    MonedaPipe, 
+    FechaPipe, 
+    LoadingSpinnerComponent, 
+    ImagenPipe, 
+    HoraPipe,
+    ImageZoomComponent
+  ],
   templateUrl: './orden-detalle.component.html',
   styleUrls: ['./orden-detalle.component.css'],
   providers: [MonedaPipe]
@@ -27,10 +37,12 @@ export class OrdenDetalleComponent implements OnInit, OnDestroy {
   cargando = true;
   totalPagado = 0;
   saldo = 0;
-  fechaServidorHoy: string = '';  // <-- AGREGAR ESTA LÍNEA
- subiendoImagen = false;
+  fechaServidorHoy: string = '';
+  subiendoImagen = false;
   private subscriptions: Subscription[] = [];
- @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+  
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+
   constructor(
     private route: ActivatedRoute,
     private ordenService: OrdenService,
@@ -38,35 +50,29 @@ export class OrdenDetalleComponent implements OnInit, OnDestroy {
     private ticketService: TicketService,
     private monedaPipe: MonedaPipe,
     private whatsAppService: WhatsAppService,
-     private servicioService: ServicioService  // <-- INYECTAR
+    private servicioService: ServicioService
   ) {}
 
- ngOnInit() {
+  ngOnInit() {
     // Primero obtener la fecha del servidor
     this.subscriptions.push(
       this.ordenService.getFechaServidor().subscribe({
         next: (fechaRespuesta) => {
           this.fechaServidorHoy = fechaRespuesta.fecha;
           console.log('📅 Detalle - Fecha del servidor:', this.fechaServidorHoy);
-          
-          // Luego cargar la orden
           this.cargarOrdenDesdeParams();
         },
         error: (error) => {
           console.error('Error obteniendo fecha del servidor:', error);
-          // Usar fecha local como respaldo
           const hoy = new Date();
           this.fechaServidorHoy = hoy.toISOString().split('T')[0];
           console.log('📅 Detalle - Usando fecha local:', this.fechaServidorHoy);
-          
-          // Cargar la orden igualmente
           this.cargarOrdenDesdeParams();
         }
       })
     );
   }
 
-    // Nuevo método para cargar la orden después de tener la fecha
   private cargarOrdenDesdeParams() {
     this.subscriptions.push(
       this.route.params.subscribe(params => {
@@ -95,46 +101,57 @@ export class OrdenDetalleComponent implements OnInit, OnDestroy {
     );
   }
 
+  isVencida(): boolean {
+    if (!this.orden?.fecha_limite || this.orden.estado === 'terminado') return false;
+    const saldo = this.saldo;
+    if (saldo <= 0) return false;
+    const hoyStr = this.fechaServidorHoy;
+    const limiteStr = this.orden.fecha_limite;
+    if (!hoyStr) {
+      const hoyLocal = new Date();
+      const hoyLocalStr = hoyLocal.toISOString().split('T')[0];
+      return limiteStr <= hoyLocalStr;
+    }
+    return limiteStr <= hoyStr;
+  }
 
-  // Método para abrir selector de archivo (soporta cámara en móvil)
+  calcularPagos() {
+    if (this.orden?.pagos) {
+      this.totalPagado = Number(this.orden.pagos.reduce((sum: number, p: any) => sum + Number(p.monto), 0)) || 0;
+      this.saldo = Number(Number(this.orden.total) - this.totalPagado) || 0;
+    }
+  }
+
+  // Método para abrir selector de archivos (con soporte para cámara y galería)
   abrirSelectorImagen() {
     if (!this.orden?.servicio?.id) {
       Swal.fire('Error', 'No se pudo identificar el servicio', 'error');
       return;
     }
-      // Crear input dinámicamente para mejor compatibilidad con móvil
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/jpeg,image/jpg,image/png,image/gif,image/webp';
-    input.capture = 'environment'; // Esto habilita la cámara en móviles
-    input.onchange = (event) => this.onImagenSeleccionadaEvent(event);
-    input.click();
-  }
-
-
-   // Método para manejar el evento de selección de archivo
-  onImagenSeleccionadaEvent(event: Event) {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      this.subirImagenServicio(input.files[0]);
+    
+    // Usar el input oculto en lugar de crear uno dinámico
+    if (this.fileInput) {
+      this.fileInput.nativeElement.click();
     }
   }
-   // Método original para el input oculto
+
+  // Método para cuando se selecciona un archivo
   onImagenSeleccionada(event: Event) {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       this.subirImagenServicio(input.files[0]);
+      // Limpiar el input para permitir seleccionar la misma imagen nuevamente
+      input.value = '';
     }
   }
-   // Subir imagen del servicio
+
+  // Subir imagen del servicio
   subirImagenServicio(file: File) {
-    // Validar tamaño (5MB)
     if (file.size > 5 * 1024 * 1024) {
       Swal.fire('Error', 'La imagen no puede ser mayor a 5MB', 'error');
       return;
     }
     
-    // Validar tipo
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
       Swal.fire('Error', 'Formato no soportado. Use JPG, PNG, GIF o WEBP', 'error');
@@ -145,8 +162,6 @@ export class OrdenDetalleComponent implements OnInit, OnDestroy {
 
     const formData = new FormData();
     formData.append('imagen', file);
-    
-    // También enviar el nombre del servicio para mantenerlo
     formData.append('nombre', this.orden.servicio.nombre);
     if (this.orden.servicio.precio_referencial) {
       formData.append('precio_referencial', this.orden.servicio.precio_referencial.toString());
@@ -156,7 +171,6 @@ export class OrdenDetalleComponent implements OnInit, OnDestroy {
       this.servicioService.actualizarServicio(this.orden.servicio.id, formData).subscribe({
         next: (response) => {
           this.subiendoImagen = false;
-          // Actualizar la imagen en la orden actual
           this.orden.servicio.imagen_url = response.servicio.imagen_url;
           
           Swal.fire({
@@ -176,41 +190,7 @@ export class OrdenDetalleComponent implements OnInit, OnDestroy {
     );
   }
 
-
-  // MODIFICAR isVencida para usar la fecha del servidor
-  isVencida(): boolean {
-    if (!this.orden?.fecha_limite || this.orden.estado === 'terminado') return false;
-    
-    const saldo = this.saldo;
-    if (saldo <= 0) return false;
-    
-    // Usar la fecha del servidor (en formato YYYY-MM-DD)
-    const hoyStr = this.fechaServidorHoy;
-    const limiteStr = this.orden.fecha_limite;
-    
-    // Si por alguna razón no tenemos la fecha del servidor, usar la fecha local
-    if (!hoyStr) {
-      const hoyLocal = new Date();
-      const hoyLocalStr = hoyLocal.toISOString().split('T')[0];
-      return limiteStr <= hoyLocalStr;
-    }
-    
-    // Log para depurar (opcional)
-    if (this.orden.id === 14) {
-      console.log(`📊 Detalle orden #14: ${limiteStr} <= ${hoyStr} = ${limiteStr <= hoyStr}`);
-    }
-    
-    return limiteStr <= hoyStr;
-  }
-
-   calcularPagos() {
-    if (this.orden?.pagos) {
-      this.totalPagado = Number(this.orden.pagos.reduce((sum: number, p: any) => sum + Number(p.monto), 0)) || 0;
-      this.saldo = Number(Number(this.orden.total) - this.totalPagado) || 0;
-    }
-  }
-
-  // Métodos de acciones
+  // Métodos de acciones (mantener los existentes)
   enviarWhatsApp() {
     this.whatsAppService.enviarMensajePersonalizado({
       telefono: this.orden?.doctor?.telefono_whatsapp,
@@ -220,33 +200,32 @@ export class OrdenDetalleComponent implements OnInit, OnDestroy {
     });
   }
 
-
   vistaPreviaTicket() {
     this.ticketService.abrirVistaPrevia(this.orden);
   }
 
   descargarTicket() {
-  Swal.fire({
-    title: 'Descargando ticket...',
-    allowOutsideClick: false,
-    didOpen: () => Swal.showLoading()
-  });
-  
-  this.ticketService.descargarTicketPDF(this.orden)
-    .then(() => {
-      Swal.fire({
-        icon: 'success',
-        title: '¡Descargado!',
-        text: 'El PDF se ha guardado correctamente',
-        timer: 1500,
-        showConfirmButton: false
-      });
-    })
-    .catch(error => {
-      console.error(error);
-      Swal.fire('Error', 'No se pudo descargar el ticket', 'error');
+    Swal.fire({
+      title: 'Descargando ticket...',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
     });
-}
+    
+    this.ticketService.descargarTicketPDF(this.orden)
+      .then(() => {
+        Swal.fire({
+          icon: 'success',
+          title: '¡Descargado!',
+          text: 'El PDF se ha guardado correctamente',
+          timer: 1500,
+          showConfirmButton: false
+        });
+      })
+      .catch(error => {
+        console.error(error);
+        Swal.fire('Error', 'No se pudo descargar el ticket', 'error');
+      });
+  }
 
   agregarPago() {
     const saldoActual = this.saldo;
@@ -449,7 +428,4 @@ export class OrdenDetalleComponent implements OnInit, OnDestroy {
     });
     console.log('🧹 OrdenDetalleComponent destruido');
   }
-
-
-
 }

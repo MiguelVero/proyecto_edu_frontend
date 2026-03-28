@@ -1,168 +1,169 @@
- <div class="detalle-container">
-      <div class="header">
-        <h1><i class="fas fa-file-invoice"></i> Detalle de Orden</h1>
-        <button class="btn-secondary" routerLink="/ordenes">
-          <i class="fas fa-arrow-left"></i> Volver
-        </button>
-      </div>
-
-      <div *ngIf="cargando" class="loading-container">
-        <app-loading-spinner></app-loading-spinner>
-      </div>
-
-      <div *ngIf="!cargando && orden" class="detalle-content">
-        <div class="info-card glass">
-          <div class="card-header">
-            <div class="doctor-info">
-              <img [src]="orden.doctor?.logo_url | imagen:'assets/images/default-doctor.png'" 
-                   [alt]="orden.doctor?.nombre"
-                   class="doctor-logo">
-              <div>
-                <h2>{{ orden.doctor?.nombre }}</h2>
-                <p class="servicio">{{ orden.servicio?.nombre }}</p>
-              </div>
-            </div>
-            <span class="estado" [ngClass]="'estado-' + orden.estado">
-              {{ orden.estado | titlecase }}
-            </span>
-          </div>
-
-      <!-- Sección de imagen de referencia del servicio con funcionalidad de subida -->
-<div class="servicio-imagen-section">
-  <div class="servicio-imagen-header">
-    <i class="fas fa-image"></i>
-    <h3>Referencia del Servicio</h3>
-    <button class="btn-edit-image" (click)="abrirSelectorImagen()" title="Cambiar imagen del servicio">
-      <i class="fas fa-camera"></i> {{ orden.servicio?.imagen_url ? 'Cambiar' : 'Subir imagen' }}
+<div class="detalle-container">
+  <div class="header">
+    <h1><i class="fas fa-file-invoice"></i> Detalle de Orden</h1>
+    <button class="btn-secondary" routerLink="/ordenes">
+      <i class="fas fa-arrow-left"></i> Volver
     </button>
   </div>
-  
-  <div class="servicio-imagen-container">
-    <!-- Mostrar imagen si existe -->
-    <div *ngIf="orden.servicio?.imagen_url" class="imagen-existente">
-      <app-image-zoom 
-        [src]="orden.servicio?.imagen_url"
-        [alt]="orden.servicio?.nombre"
-        defaultImage="assets/images/default-service.png"
-        class="servicio-zoom">
-      </app-image-zoom>
-      <p class="servicio-imagen-caption">{{ orden.servicio?.nombre }}</p>
-    </div>
-    
-    <!-- Placeholder cuando no hay imagen -->
-    <div *ngIf="!orden.servicio?.imagen_url" class="imagen-placeholder" (click)="abrirSelectorImagen()">
-      <i class="fas fa-image"></i>
-      <p>Sin imagen de referencia</p>
-      <span class="placeholder-hint">Haz clic para subir una imagen</span>
-    </div>
-    
-    <!-- Indicador de carga -->
-    <div *ngIf="subiendoImagen" class="uploading-indicator">
-      <div class="spinner"></div>
-      <p>Subiendo imagen...</p>
-    </div>
+
+  <div *ngIf="cargando" class="loading-container">
+    <app-loading-spinner></app-loading-spinner>
   </div>
-  
-  <!-- Input oculto para seleccionar archivo -->
-  <input 
-    type="file" 
-    #fileInput 
-    style="display: none" 
-    accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
-    (change)="onImagenSeleccionada($event)">
-</div>
 
-          <div class="info-grid">
-            <div class="info-item">
-              <span class="label">Orden #</span>
-              <span class="value">{{ orden.id_externo }}</span>
-            </div>
-            <div class="info-item">
-  <span class="label">Fecha Registro</span>
-  <span class="value fecha-registro">
-    <span class="fecha">{{ orden.fecha_registro | fecha:'dd/MM/yyyy' }}</span>
-    <span class="hora-registro">{{ orden.fecha_registro | fecha:'h:mm a' }}</span>
-  </span>
-</div>
-           <div class="info-item">
-              <span class="label">Fecha Límite</span>
-              <span class="value" [ngClass]="{'vencido': isVencida()}">
-                {{ orden.fecha_limite | fecha }}
-                <span class="hora-detalle" *ngIf="orden.hora_limite">
-                  {{ orden.hora_limite | hora }}
-                </span>
-              </span>
-            </div>
-            <div class="info-item">
-              <span class="label">Prioridad</span>
-              <span class="value" [ngClass]="'prioridad-' + orden.prioridad">
-                {{ orden.prioridad | titlecase }}
-              </span>
-            </div>
-          </div>
-
-          <div class="montos-section">
-            <h3>Información de Pagos</h3>
-            <div class="montos-grid">
-              <div class="monto-item total">
-                <span>Total</span>
-                <span class="cantidad">{{ orden.total | moneda }}</span>
-              </div>
-              <div class="monto-item abonado">
-                <span>Abonado</span>
-                <span class="cantidad">{{ totalPagado | moneda }}</span>
-              </div>
-              <div class="monto-item saldo" [ngClass]="{'pagado': saldo === 0}">
-                <span>Saldo</span>
-                <span class="cantidad">{{ saldo | moneda }}</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="pagos-section">
-          <h3>Historial de Pagos</h3>
-          <button class="btn-add-pago" (click)="agregarPago()" [disabled]="saldo === 0">
-            <i class="fas fa-plus"></i> Agregar Pago
-          </button>
-
-          <div *ngIf="orden.pagos?.length === 0" class="no-pagos">
-            No hay pagos registrados
-          </div>
-
-          <div *ngFor="let pago of orden.pagos" class="pago-item">
-            <div class="pago-info">
-              <span class="pago-fecha">{{ pago.creado_en | fecha:'dd/MM/yyyy h:mm a' }}</span>
-              <span class="pago-monto">{{ pago.monto | moneda }}</span>
-              <span class="pago-metodo">{{ pago.metodo_pago | titlecase }}</span>
-              <span *ngIf="pago.referencia" class="pago-referencia">Ref: {{ pago.referencia }}</span>
-            </div>
-            <div class="pago-actions">
-              <button class="btn-edit-pago" (click)="editarPago(pago)" title="Editar pago">
-                <i class="fas fa-pen"></i>
-              </button>
-              <button class="btn-delete" (click)="eliminarPago(pago.id)" title="Eliminar pago">
-                <i class="fas fa-trash"></i>
-              </button>
-            </div>
+  <div *ngIf="!cargando && orden" class="detalle-content">
+    <div class="info-card glass">
+      <div class="card-header">
+        <div class="doctor-info">
+          <img [src]="orden.doctor?.logo_url | imagen:'assets/images/default-doctor.png'" 
+               [alt]="orden.doctor?.nombre"
+               class="doctor-logo">
+          <div>
+            <h2>{{ orden.doctor?.nombre }}</h2>
+            <p class="servicio">{{ orden.servicio?.nombre }}</p>
           </div>
         </div>
+        <span class="estado" [ngClass]="'estado-' + orden.estado">
+          {{ orden.estado | titlecase }}
+        </span>
+      </div>
 
-          <div *ngIf="orden.cliente_nombre" class="cliente-section">
-            <h3>Información del Cliente</h3>
-            <p>{{ orden.cliente_nombre }}</p>
+      <!-- Sección de imagen de referencia del servicio -->
+      <div class="servicio-imagen-section">
+        <div class="servicio-imagen-header">
+          <i class="fas fa-image"></i>
+          <h3>Referencia del Servicio</h3>
+          <button class="btn-edit-image" (click)="abrirSelectorImagen()" [disabled]="subiendoImagen">
+            <i class="fas" [ngClass]="{'fa-camera': !subiendoImagen, 'fa-spinner fa-spin': subiendoImagen}"></i>
+            {{ subiendoImagen ? 'Subiendo...' : (orden.servicio?.imagen_url ? 'Cambiar' : 'Subir imagen') }}
+          </button>
+        </div>
+        
+        <div class="servicio-imagen-container">
+          <!-- Mostrar imagen si existe (usando ImageZoomComponent para zoom) -->
+          <div *ngIf="orden.servicio?.imagen_url" class="imagen-existente">
+            <app-image-zoom 
+              [src]="orden.servicio?.imagen_url"
+              [alt]="orden.servicio?.nombre"
+              defaultImage="assets/images/default-service.png"
+              class="servicio-zoom">
+            </app-image-zoom>
+            <p class="servicio-imagen-caption">{{ orden.servicio?.nombre }}</p>
           </div>
-
-                 <div class="acciones">
-                <button class="btn-whatsapp" (click)="enviarWhatsApp()">
-                  <i class="fab fa-whatsapp"></i> Enviar por WhatsApp
-                </button>
-                <button class="btn-preview" (click)="vistaPreviaTicket()" title="Vista previa">
-                  <i class="fas fa-eye"></i> Vista Previa
-                </button>
-                <button class="btn-edit" [routerLink]="['/ordenes/editar', orden.id]">
-                  <i class="fas fa-pen-to-square"></i> Editar
-                </button>
-              </div>
+          
+          <!-- Placeholder cuando no hay imagen -->
+          <div *ngIf="!orden.servicio?.imagen_url" class="imagen-placeholder" (click)="abrirSelectorImagen()">
+            <i class="fas fa-image"></i>
+            <p>Sin imagen de referencia</p>
+            <span class="placeholder-hint">Haz clic para subir una imagen</span>
+          </div>
+          
+          <!-- Indicador de carga -->
+          <div *ngIf="subiendoImagen" class="uploading-indicator">
+            <div class="spinner"></div>
+            <p>Subiendo imagen...</p>
+          </div>
         </div>
       </div>
+
+      <!-- Input oculto para seleccionar archivo -->
+      <input 
+        type="file" 
+        #fileInput 
+        style="display: none" 
+        accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+        (change)="onImagenSeleccionada($event)">
+
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="label">Orden #</span>
+          <span class="value">{{ orden.id_externo }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Fecha Registro</span>
+          <span class="value fecha-registro">
+            <span class="fecha">{{ orden.fecha_registro | fecha:'dd/MM/yyyy' }}</span>
+            <span class="hora-registro">{{ orden.fecha_registro | fecha:'h:mm a' }}</span>
+          </span>
+        </div>
+        <div class="info-item">
+          <span class="label">Fecha Límite</span>
+          <span class="value" [ngClass]="{'vencido': isVencida()}">
+            {{ orden.fecha_limite | fecha }}
+            <span class="hora-detalle" *ngIf="orden.hora_limite">
+              {{ orden.hora_limite | hora }}
+            </span>
+          </span>
+        </div>
+        <div class="info-item">
+          <span class="label">Prioridad</span>
+          <span class="value" [ngClass]="'prioridad-' + orden.prioridad">
+            {{ orden.prioridad | titlecase }}
+          </span>
+        </div>
+      </div>
+
+      <div class="montos-section">
+        <h3>Información de Pagos</h3>
+        <div class="montos-grid">
+          <div class="monto-item total">
+            <span>Total</span>
+            <span class="cantidad">{{ orden.total | moneda }}</span>
+          </div>
+          <div class="monto-item abonado">
+            <span>Abonado</span>
+            <span class="cantidad">{{ totalPagado | moneda }}</span>
+          </div>
+          <div class="monto-item saldo" [ngClass]="{'pagado': saldo === 0}">
+            <span>Saldo</span>
+            <span class="cantidad">{{ saldo | moneda }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="pagos-section">
+        <h3>Historial de Pagos</h3>
+        <button class="btn-add-pago" (click)="agregarPago()" [disabled]="saldo === 0">
+          <i class="fas fa-plus"></i> Agregar Pago
+        </button>
+
+        <div *ngIf="orden.pagos?.length === 0" class="no-pagos">
+          No hay pagos registrados
+        </div>
+
+        <div *ngFor="let pago of orden.pagos" class="pago-item">
+          <div class="pago-info">
+            <span class="pago-fecha">{{ pago.creado_en | fecha:'dd/MM/yyyy h:mm a' }}</span>
+            <span class="pago-monto">{{ pago.monto | moneda }}</span>
+            <span class="pago-metodo">{{ pago.metodo_pago | titlecase }}</span>
+            <span *ngIf="pago.referencia" class="pago-referencia">Ref: {{ pago.referencia }}</span>
+          </div>
+          <div class="pago-actions">
+            <button class="btn-edit-pago" (click)="editarPago(pago)" title="Editar pago">
+              <i class="fas fa-pen"></i>
+            </button>
+            <button class="btn-delete" (click)="eliminarPago(pago.id)" title="Eliminar pago">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="orden.cliente_nombre" class="cliente-section">
+        <h3>Información del Cliente</h3>
+        <p>{{ orden.cliente_nombre }}</p>
+      </div>
+
+      <div class="acciones">
+        <button class="btn-whatsapp" (click)="enviarWhatsApp()">
+          <i class="fab fa-whatsapp"></i> Enviar por WhatsApp
+        </button>
+        <button class="btn-preview" (click)="vistaPreviaTicket()" title="Vista previa">
+          <i class="fas fa-eye"></i> Vista Previa
+        </button>
+        <button class="btn-edit" [routerLink]="['/ordenes/editar', orden.id]">
+          <i class="fas fa-pen-to-square"></i> Editar
+        </button>
+      </div>
     </div>
+  </div>
+</div>
