@@ -727,9 +727,21 @@
   min-height: 220px;
 }
 
+.servicio-zoom {
+  width: 200px;
+  height: 200px;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--surf, #ffffff);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
 
-
-
+.servicio-zoom:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.2);
+}
 
 /* Placeholder cuando no hay imagen */
 .imagen-placeholder {
@@ -819,6 +831,11 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+  .servicio-zoom {
+    width: 150px;
+    height: 150px;
+  }
+  
   .imagen-placeholder {
     width: 150px;
     height: 150px;
