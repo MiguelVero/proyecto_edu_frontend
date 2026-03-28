@@ -268,12 +268,7 @@ export class ImageZoomComponent {
   showZoom = false;
   isPortrait = false;
 
-  openZoom() {
-    if (this.src) {
-      this.showZoom = true;
-      document.body.style.overflow = 'hidden';
-    }
-  }
+  
 
   closeZoom() {
     this.showZoom = false;
@@ -290,4 +285,28 @@ export class ImageZoomComponent {
   onImageError() {
     console.log('Error cargando imagen:', this.src);
   }
+
+
+openZoom() {
+  if (this.src) {
+    this.showZoom = true;
+
+    // 🔥 MOVER EL MODAL AL BODY
+    setTimeout(() => {
+      const modal = document.querySelector('.zoom-modal');
+      if (modal) {
+        document.body.appendChild(modal);
+      }
+    });
+
+    document.body.style.overflow = 'hidden';
+  }
+}
+
+
+
+
+
+
+
 }
