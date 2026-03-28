@@ -12,11 +12,11 @@ import { LoadingSpinnerComponent } from '../../../../shared/components/loading-s
 import Swal from 'sweetalert2';
 import { ImagenPipe } from '../../../../shared/pipes/imagen.pipe';
 import { WhatsAppService } from '../../../../core/services/whatsapp.service';
-
+import { ImageZoomComponent } from '../../../../shared/components/image-zoom/image-zoom.component'; // <-- IMPORTAR ESTO
 @Component({
   selector: 'app-orden-detalle',
   standalone: true,
-  imports: [CommonModule, RouterModule, MonedaPipe, FechaPipe, LoadingSpinnerComponent, ImagenPipe, HoraPipe],
+  imports: [CommonModule, RouterModule, MonedaPipe, FechaPipe, LoadingSpinnerComponent, ImagenPipe, HoraPipe, ImageZoomComponent ],
   templateUrl: './orden-detalle.component.html',
   styleUrls: ['./orden-detalle.component.css'],
   providers: [MonedaPipe]
