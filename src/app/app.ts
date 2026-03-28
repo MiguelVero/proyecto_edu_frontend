@@ -1,9 +1,8 @@
-import { Component, OnInit, HostListener, Renderer2 } from '@angular/core';
+import { Component, OnInit, HostListener, Renderer2, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
+import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { AuthService } from './core/services/auth.service';
-import { environment } from '../environments/environment';
 
 @Component({
   selector: 'app-root',
@@ -17,37 +16,32 @@ import { environment } from '../environments/environment';
   templateUrl: './app.html',
   styleUrls: ['./app.css']
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
   title = 'frontend';
   currentTheme: string = 'dark';
   menuOpen: boolean = false;
+  private authSubscription?: Subscription;
   
   constructor(
     public authService: AuthService,
-    private http: HttpClient,
-    private renderer: Renderer2
+    private renderer: Renderer2,
+    private router: Router
   ) {
     this.currentTheme = localStorage.getItem('theme') || 'dark';
     document.body.setAttribute('data-theme', this.currentTheme);
   }
 
   ngOnInit() {
-    if (this.authService.isAuthenticated()) {
-      this.verificarToken();
-    }
-  }
-
-  verificarToken() {
-    this.http.get(`${environment.apiUrl}/auth/verificar`).subscribe({
-      next: (response: any) => {
-        console.log('✅ Token válido');
-        console.log('👤 Usuario:', response.usuario);
-      },
-      error: (error) => {
-        console.error('❌ Token inválido o expirado');
-        this.authService.logout();
+    // Redirigir si el token es inválido después de la verificación
+    this.authSubscription = this.authService.authLoading$.subscribe((loading) => {
+      if (!loading && !this.authService.isAuthenticated() && this.router.url !== '/login') {
+        this.router.navigate(['/login']);
       }
     });
+  }
+
+  ngOnDestroy() {
+    this.authSubscription?.unsubscribe();
   }
 
   toggleTheme() {
@@ -72,10 +66,8 @@ export class AppComponent implements OnInit {
     }
   }
 
-  // Método para cerrar el menú si se hace clic fuera
   closeMenuIfClickOutside(event: MouseEvent) {
     const target = event.target as HTMLElement;
-    // Si el clic no fue en el menú ni en el botón hamburguesa
     if (!target.closest('.nav-menu') && !target.closest('.menu-toggle')) {
       this.closeMenu();
     }
@@ -93,10 +85,8 @@ export class AppComponent implements OnInit {
     this.closeMenu();
   }
 
-  // HostListener para detectar clics en el documento
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
-    // Solo cerrar si el menú está abierto y estamos en móvil
     if (this.menuOpen && window.innerWidth <= 768) {
       this.closeMenuIfClickOutside(event);
     }
