@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -12,7 +12,8 @@ import { LoadingSpinnerComponent } from '../../../../shared/components/loading-s
 import Swal from 'sweetalert2';
 import { ImagenPipe } from '../../../../shared/pipes/imagen.pipe';
 import { WhatsAppService } from '../../../../core/services/whatsapp.service';
-import { ImageZoomComponent } from '../../../../shared/components/image-zoom/image-zoom.component'; // <-- IMPORTAR ESTO
+import { ImageZoomComponent } from '../../../../shared/components/image-zoom/image-zoom.component';
+import { ServicioService } from '../../../../core/services/servicio.service'; // <-- IMPORTAR
 @Component({
   selector: 'app-orden-detalle',
   standalone: true,
@@ -27,15 +28,17 @@ export class OrdenDetalleComponent implements OnInit, OnDestroy {
   totalPagado = 0;
   saldo = 0;
   fechaServidorHoy: string = '';  // <-- AGREGAR ESTA LÍNEA
+ subiendoImagen = false;
   private subscriptions: Subscription[] = [];
-
+ @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
   constructor(
     private route: ActivatedRoute,
     private ordenService: OrdenService,
     private pagoService: PagoService,
     private ticketService: TicketService,
     private monedaPipe: MonedaPipe,
-    private whatsAppService: WhatsAppService
+    private whatsAppService: WhatsAppService,
+     private servicioService: ServicioService  // <-- INYECTAR
   ) {}
 
  ngOnInit() {
@@ -91,6 +94,88 @@ export class OrdenDetalleComponent implements OnInit, OnDestroy {
       })
     );
   }
+
+
+  // Método para abrir selector de archivo (soporta cámara en móvil)
+  abrirSelectorImagen() {
+    if (!this.orden?.servicio?.id) {
+      Swal.fire('Error', 'No se pudo identificar el servicio', 'error');
+      return;
+    }
+      // Crear input dinámicamente para mejor compatibilidad con móvil
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/jpeg,image/jpg,image/png,image/gif,image/webp';
+    input.capture = 'environment'; // Esto habilita la cámara en móviles
+    input.onchange = (event) => this.onImagenSeleccionadaEvent(event);
+    input.click();
+  }
+
+
+   // Método para manejar el evento de selección de archivo
+  onImagenSeleccionadaEvent(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      this.subirImagenServicio(input.files[0]);
+    }
+  }
+   // Método original para el input oculto
+  onImagenSeleccionada(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      this.subirImagenServicio(input.files[0]);
+    }
+  }
+   // Subir imagen del servicio
+  subirImagenServicio(file: File) {
+    // Validar tamaño (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      Swal.fire('Error', 'La imagen no puede ser mayor a 5MB', 'error');
+      return;
+    }
+    
+    // Validar tipo
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      Swal.fire('Error', 'Formato no soportado. Use JPG, PNG, GIF o WEBP', 'error');
+      return;
+    }
+
+    this.subiendoImagen = true;
+
+    const formData = new FormData();
+    formData.append('imagen', file);
+    
+    // También enviar el nombre del servicio para mantenerlo
+    formData.append('nombre', this.orden.servicio.nombre);
+    if (this.orden.servicio.precio_referencial) {
+      formData.append('precio_referencial', this.orden.servicio.precio_referencial.toString());
+    }
+
+    this.subscriptions.push(
+      this.servicioService.actualizarServicio(this.orden.servicio.id, formData).subscribe({
+        next: (response) => {
+          this.subiendoImagen = false;
+          // Actualizar la imagen en la orden actual
+          this.orden.servicio.imagen_url = response.servicio.imagen_url;
+          
+          Swal.fire({
+            icon: 'success',
+            title: '¡Imagen actualizada!',
+            text: 'La imagen de referencia del servicio se ha actualizado correctamente',
+            timer: 2000,
+            showConfirmButton: false
+          });
+        },
+        error: (error) => {
+          this.subiendoImagen = false;
+          console.error('Error subiendo imagen:', error);
+          Swal.fire('Error', 'No se pudo subir la imagen. Intente nuevamente.', 'error');
+        }
+      })
+    );
+  }
+
 
   // MODIFICAR isVencida para usar la fecha del servidor
   isVencida(): boolean {
@@ -364,4 +449,7 @@ export class OrdenDetalleComponent implements OnInit, OnDestroy {
     });
     console.log('🧹 OrdenDetalleComponent destruido');
   }
+
+
+
 }
