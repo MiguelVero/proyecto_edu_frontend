@@ -26,6 +26,7 @@
   align-items: center;
   gap: 10px;
   z-index: 1002;
+  position: relative;
 }
 
 /* Botón hamburguesa */
@@ -52,29 +53,35 @@
 
 .menu-toggle.active {
   background: rgba(255, 255, 255, 0.2);
+  transform: rotate(90deg);
 }
 
-/* Overlay para cerrar al hacer clic fuera */
+/* Overlay mejorado */
 .menu-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 998;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 999;
   animation: fadeIn 0.3s ease;
+  cursor: pointer;
 }
 
 @keyframes fadeIn {
   from {
     opacity: 0;
+    backdrop-filter: blur(0px);
   }
   to {
     opacity: 1;
+    backdrop-filter: blur(4px);
   }
 }
 
+/* Menú lateral mejorado */
 .nav-menu {
   display: flex;
   gap: 5px;
@@ -97,6 +104,7 @@
 .nav-item:hover, .nav-item.active {
   background: rgba(255, 255, 255, 0.2);
   color: white;
+  transform: translateX(4px);
 }
 
 .nav-actions {
@@ -122,6 +130,7 @@
 
 .btn-logout:hover {
   background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
 }
 
 .theme-toggle {
@@ -141,6 +150,7 @@
 
 .theme-toggle:hover {
   background: rgba(255, 255, 255, 0.2);
+  transform: rotate(15deg);
 }
 
 main {
@@ -152,7 +162,7 @@ main {
   background: #0f172a;
 }
 
-/* Responsive */
+/* Responsive mejorado */
 @media (max-width: 768px) {
   .navbar {
     padding: 0.8rem 1rem;
@@ -172,10 +182,10 @@ main {
     flex-direction: column;
     align-items: stretch;
     gap: 0;
-    padding: 70px 20px 20px;
-    transition: right 0.3s ease;
+    padding: 80px 20px 20px;
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 1001;
-    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.2);
+    box-shadow: -5px 0 25px rgba(0, 0, 0, 0.3);
     overflow-y: auto;
   }
   
@@ -183,21 +193,60 @@ main {
     right: 0;
   }
   
-  /* Eliminado el estilo de .menu-close-btn */
+  /* Animación de entrada para los items del menú */
+  .nav-menu.open .nav-item {
+    animation: slideIn 0.3s ease forwards;
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  
+  .nav-menu.open .nav-item:nth-child(1) { animation-delay: 0.05s; }
+  .nav-menu.open .nav-item:nth-child(2) { animation-delay: 0.1s; }
+  .nav-menu.open .nav-item:nth-child(3) { animation-delay: 0.15s; }
+  .nav-menu.open .nav-item:nth-child(4) { animation-delay: 0.2s; }
+  .nav-menu.open .nav-item:nth-child(5) { animation-delay: 0.25s; }
+  .nav-menu.open .nav-actions { animation: slideIn 0.3s ease 0.3s forwards; opacity: 0; transform: translateX(20px); }
+  
+  @keyframes slideIn {
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
   
   .nav-item {
-    padding: 15px 20px;
+    padding: 14px 20px;
     border-radius: 12px;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
     font-size: 1rem;
     justify-content: flex-start;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .nav-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: white;
+    transform: scaleY(0);
+    transition: transform 0.2s;
+  }
+  
+  .nav-item.active::before {
+    transform: scaleY(1);
   }
   
   .nav-actions {
     flex-direction: column;
     margin-left: 0;
     margin-top: 20px;
-    gap: 10px;
+    gap: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    padding-top: 20px;
   }
   
   .btn-logout, .theme-toggle {
@@ -210,10 +259,17 @@ main {
   .theme-toggle {
     width: 100%;
   }
+  
+  /* Header cuando el menú está abierto - mantener el brand visible */
+  .navbar.menu-open-state .nav-brand {
+    opacity: 0.7;
+  }
 }
 
 @media (min-width: 769px) {
-  /* Eliminado el estilo para .menu-close-btn */
+  .menu-overlay {
+    display: none;
+  }
 }
 
 /* Prevenir scroll cuando el menú está abierto */

@@ -21,6 +21,7 @@ export class AppComponent implements OnInit, OnDestroy {
   currentTheme: string = 'dark';
   menuOpen: boolean = false;
   private authSubscription?: Subscription;
+  private originalOverflow: string = '';
   
   constructor(
     public authService: AuthService,
@@ -42,6 +43,10 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.authSubscription?.unsubscribe();
+    // Asegurarse de restaurar el scroll si el componente se destruye con el menú abierto
+    if (this.menuOpen) {
+      this.restoreBodyScroll();
+    }
   }
 
   toggleTheme() {
@@ -53,8 +58,10 @@ export class AppComponent implements OnInit, OnDestroy {
   toggleMenu() {
     this.menuOpen = !this.menuOpen;
     if (this.menuOpen) {
+      this.disableBodyScroll();
       this.renderer.addClass(document.body, 'menu-open');
     } else {
+      this.restoreBodyScroll();
       this.renderer.removeClass(document.body, 'menu-open');
     }
   }
@@ -62,7 +69,29 @@ export class AppComponent implements OnInit, OnDestroy {
   closeMenu() {
     if (this.menuOpen) {
       this.menuOpen = false;
+      this.restoreBodyScroll();
       this.renderer.removeClass(document.body, 'menu-open');
+    }
+  }
+  
+  private disableBodyScroll() {
+    this.originalOverflow = document.body.style.overflow;
+    this.renderer.setStyle(document.body, 'overflow', 'hidden');
+    // Guardar la posición del scroll
+    const scrollY = window.scrollY;
+    this.renderer.setStyle(document.body, 'position', 'fixed');
+    this.renderer.setStyle(document.body, 'top', `-${scrollY}px`);
+    this.renderer.setStyle(document.body, 'width', '100%');
+  }
+  
+  private restoreBodyScroll() {
+    const scrollY = document.body.style.top;
+    this.renderer.setStyle(document.body, 'overflow', this.originalOverflow);
+    this.renderer.setStyle(document.body, 'position', '');
+    this.renderer.setStyle(document.body, 'top', '');
+    this.renderer.setStyle(document.body, 'width', '');
+    if (scrollY) {
+      window.scrollTo(0, parseInt(scrollY || '0', 10) * -1);
     }
   }
 
@@ -75,14 +104,16 @@ export class AppComponent implements OnInit, OnDestroy {
 
   @HostListener('window:resize', ['$event'])
   onResize() {
-    if (window.innerWidth > 768) {
+    if (window.innerWidth > 768 && this.menuOpen) {
       this.closeMenu();
     }
   }
 
   @HostListener('document:keydown.escape', ['$event'])
   onEscapePress() {
-    this.closeMenu();
+    if (this.menuOpen) {
+      this.closeMenu();
+    }
   }
 
   @HostListener('document:click', ['$event'])

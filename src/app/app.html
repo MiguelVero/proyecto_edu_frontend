@@ -6,7 +6,7 @@
 
 <!-- Navbar - Solo aparece DESPUÉS de verificar autenticación -->
 <ng-container *ngIf="!(authService.authLoading$ | async)">
-  <nav class="navbar" *ngIf="authService.isAuthenticated()">
+  <nav class="navbar" [class.menu-open-state]="menuOpen" *ngIf="authService.isAuthenticated()">
     <div class="nav-container">
       <a routerLink="/dashboard" class="nav-brand">
         <i class="fas fa-microchip"></i> LabTrack Pro
