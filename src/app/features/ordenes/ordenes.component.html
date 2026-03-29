@@ -41,11 +41,6 @@
       </button>
       
     </div>
-
-    <button class="btn-filtros" (click)="mostrarFiltrosAvanzados = !mostrarFiltrosAvanzados">
-      <i class="fas fa-sliders-h"></i>
-      Filtros avanzados {{ filtrosActivosCount > 0 ? '(' + filtrosActivosCount + ')' : '' }}
-    </button>
   </div>
 <!-- TABLA DE ÓRDENES -->
 <div class="table-container" *ngIf="!cargando">
