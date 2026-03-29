@@ -42,30 +42,40 @@ export class AuthService {
   }
 
   private verificarTokenEnBackend(token: string) {
-    // Crear headers manualmente para evitar problemas con el interceptor
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    });
+     // Verificar que token existe
+    if (!token) {
+        console.warn('⚠️ No hay token para verificar');
+        this.authLoadingSubject.next(false);
+        return;
+    }
     
+    // Crear headers manualmente
+    const headers = new HttpHeaders({
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+    });
+
     console.log('🔍 Verificando token con headers:', headers.get('Authorization')?.substring(0, 30) + '...');
     
-    this.http.get(`${this.apiUrl}/verificar`, { headers }).pipe(
-      timeout(10000),
-      catchError((error) => {
-        console.error('❌ Error verificando token:', error.status, error.message);
-        
-        if (error.status === 401) {
-          console.error('❌ Token inválido o expirado');
-          this.logoutSilently();
-        } else {
-          console.warn('⚠️ Error de red al verificar token, manteniendo sesión local');
-        }
-        return of(null);
-      }),
-      finalize(() => {
-        this.authLoadingSubject.next(false);
-      })
+      this.http.get(`${this.apiUrl}/verificar`, { headers }).pipe(
+        timeout(10000),
+        catchError((error) => {
+            // Solo loguear error si no es 401 (que es esperado cuando el token expiró)
+            if (error.status !== 401) {
+                console.error('❌ Error verificando token:', error.status, error.message);
+            }
+            
+            if (error.status === 401) {
+                console.error('❌ Token inválido o expirado');
+                this.logoutSilently();
+            } else {
+                console.warn('⚠️ Error de red al verificar token, manteniendo sesión local');
+            }
+            return of(null);
+        }),
+        finalize(() => {
+            this.authLoadingSubject.next(false);
+        })
     ).subscribe({
       next: (response: any) => {
         if (response && response.valido) {
@@ -76,7 +86,10 @@ export class AuthService {
             this.resetInactivityTimer();
           }
         }
-      }
+      },
+        error: (err) => {
+            // Ya manejado en catchError
+        }
     });
   }
 

@@ -1,6 +1,6 @@
 import { inject } from '@angular/core';
 import { HttpInterceptorFn } from '@angular/common/http';
-import { catchError } from 'rxjs/operators';
+import { catchError, timeout } from 'rxjs/operators';
 import { throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
@@ -14,16 +14,26 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const monitor = inject(MonitorService);
   
-  const token = authService.getToken();
-  const tokenPresent = !!token;
   const isExcludedUrl = excludedUrls.some(url => req.url.includes(url));
   
-  // Solo loguear si no es una URL excluida
-  if (!isExcludedUrl) {
-    console.log('🔑 Token:', tokenPresent ? 'Presente' : 'No presente');
-    if (token) {
-      console.log('🔑 Token (primeros 20 caracteres):', token.substring(0, 20) + '...');
-    }
+  // Para URLs excluidas, pasar la petición sin modificar
+  if (isExcludedUrl) {
+    return next(req);
+  }
+  
+  // Verificar que authService está disponible y tiene getToken
+  let token: string | null = null;
+  try {
+    token = authService?.getToken ? authService.getToken() : null;
+  } catch (err) {
+    console.error('❌ Error accediendo a authService.getToken:', err);
+    return next(req);
+  }
+  
+  const tokenPresent = !!token;
+  
+  if (tokenPresent && token) {  // <-- AÑADIR VERIFICACIÓN token !== null
+    console.log('🔑 Token (primeros 20 caracteres):', token.substring(0, 20) + '...');
     console.log('📡 Request URL:', req.url);
   }
   
@@ -32,7 +42,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   }
   
   let authReq = req;
-  if (token && !isExcludedUrl) {
+  if (tokenPresent && token) {  // <-- AÑADIR VERIFICACIÓN token !== null
     const isFormData = req.body instanceof FormData;
     
     let headers: any = {
@@ -46,24 +56,28 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     authReq = req.clone({
       setHeaders: headers
     });
-    
-    console.log('📤 Headers configurados:', Object.keys(headers));
   }
 
   return next(authReq).pipe(
+    timeout(30000),
     catchError((error: any) => {
       if (monitor) {
         monitor.logError(req, error.error, error.status);
       }
       
-      console.error('❌ Error en petición:', {
-        url: error.url,
-        status: error.status,
-        message: error.message
-      });
+      // Solo loguear errores que no sean de URLs excluidas
+      if (!isExcludedUrl) {
+        console.error('❌ Error en petición:', {
+          url: error.url,
+          status: error.status,
+          message: error.message
+        });
+      }
 
       if (error.status === 0) {
-        console.warn('⚠️ Error de red o CORS');
+        if (!isExcludedUrl) {
+          console.warn('⚠️ Error de red o CORS');
+        }
         return throwError(() => error);
       }
       
