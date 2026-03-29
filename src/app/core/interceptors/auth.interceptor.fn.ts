@@ -14,21 +14,18 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const monitor = inject(MonitorService);
   
-  // Verificar que authService existe
-  if (!authService || typeof authService.getToken !== 'function') {
-    console.error('❌ AuthService no está correctamente inicializado');
-    return next(req);
-  }
-
   const token = authService.getToken();
   const tokenPresent = !!token;
   const isExcludedUrl = excludedUrls.some(url => req.url.includes(url));
   
-  console.log('🔑 Token:', tokenPresent ? 'Presente' : 'No presente');
-  if (token && !isExcludedUrl) {
-    console.log('🔑 Token (primeros 20 caracteres):', token.substring(0, 20) + '...');
+  // Solo loguear si no es una URL excluida
+  if (!isExcludedUrl) {
+    console.log('🔑 Token:', tokenPresent ? 'Presente' : 'No presente');
+    if (token) {
+      console.log('🔑 Token (primeros 20 caracteres):', token.substring(0, 20) + '...');
+    }
+    console.log('📡 Request URL:', req.url);
   }
-  console.log('📡 Request URL:', req.url);
   
   if (monitor) {
     monitor.logRequest(req, tokenPresent);
@@ -70,23 +67,18 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         return throwError(() => error);
       }
       
-      if (error.status === 401) {
+      if (error.status === 401 && !req.url.includes('/auth/verificar')) {
         console.warn('⚠️ Token inválido o expirado');
         
-        const isVerificationUrl = req.url.includes('/auth/verificar');
-        if (!isVerificationUrl) {
-          Swal.fire({
-            icon: 'error',
-            title: 'Sesión expirada',
-            text: 'Por favor, inicie sesión nuevamente',
-            timer: 2000,
-            showConfirmButton: false
-          }).then(() => {
-            authService.logout();
-          });
-        } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Sesión expirada',
+          text: 'Por favor, inicie sesión nuevamente',
+          timer: 2000,
+          showConfirmButton: false
+        }).then(() => {
           authService.logout();
-        }
+        });
       } else if (error.status === 403) {
         Swal.fire({
           icon: 'error',
