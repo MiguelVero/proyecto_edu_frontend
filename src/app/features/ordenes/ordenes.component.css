@@ -129,45 +129,8 @@
 }
 
 /* Filtros avanzados */
-.filtros-avanzados {
-  background: var(--in, #f8fafc);
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 20px;
-  border: 1px solid var(--bor, #e2e8f0);
-}
 
-.filtros-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 16px;
-  margin-bottom: 16px;
-}
 
-.filtro-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.filtro-group label {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--mut, #64748b);
-}
-
-.filtros-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 16px;
-  border-top: 1px solid var(--bor, #e2e8f0);
-}
-
-.resultados-count {
-  font-size: 0.85rem;
-  color: var(--mut, #64748b);
-}
 
 .btn-secondary {
   background: var(--in, #f1f5f9);
