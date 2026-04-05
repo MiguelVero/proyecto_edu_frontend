@@ -54,9 +54,6 @@ import { ImagenPipe } from '../../pipes/imagen.pipe';
                 <img [src]="opcion.logo_url | imagen:'assets/images/default-doctor.png'" alt="">
               </span>
               <span class="option-text">{{ opcion.nombre }}</span>
-              <span *ngIf="mostrarDetalle && opcion.telefono_whatsapp" class="option-detail">
-                {{ opcion.telefono_whatsapp }}
-              </span>
             </div>
             <i *ngIf="valorSeleccionado?.id === opcion.id" class="fas fa-check"></i>
           </div>
