@@ -181,6 +181,13 @@ subirImagenReferencia(file: File) {
             error: (error) => {
                 this.subiendoImagen = false;
                 console.error('Error subiendo imagen:', error);
+                 // Mostrar mensaje de error más específico
+                let mensajeError = 'No se pudo subir la imagen.';
+                if (error.error && error.error.error) {
+                    mensajeError = error.error.error;
+                } else if (error.message) {
+                    mensajeError = error.message;
+                }
                 Swal.fire('Error', 'No se pudo subir la imagen. Intente nuevamente.', 'error');
             }
         })
