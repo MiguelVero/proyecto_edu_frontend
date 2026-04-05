@@ -17,6 +17,7 @@ export interface Orden {
   fecha_limite?: string;
   hora_limite?: string;
   cliente_nombre?: string;
+  imagen_referencia_url?: string;
   doctor?: any;
   servicio?: any;
   pagos?: Array<{
@@ -113,6 +114,25 @@ actualizarImagenReferencia(id: number, formData: FormData): Observable<any> {
         timeout(10000),
         catchError(error => {
             console.error(`Error en actualizarImagenReferencia(${id}):`, error);
+            return throwError(() => error);
+        })
+    );
+}
+crearOrdenConImagen(formData: FormData): Observable<any> {
+    return this.http.post(this.apiUrl, formData).pipe(
+        timeout(10000),
+        catchError(error => {
+            console.error('Error en crearOrdenConImagen:', error);
+            return throwError(() => error);
+        })
+    );
+}
+
+actualizarOrdenConImagen(id: number, formData: FormData): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${id}`, formData).pipe(
+        timeout(10000),
+        catchError(error => {
+            console.error(`Error en actualizarOrdenConImagen(${id}):`, error);
             return throwError(() => error);
         })
     );

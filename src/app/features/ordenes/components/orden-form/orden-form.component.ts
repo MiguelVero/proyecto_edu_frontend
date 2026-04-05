@@ -1,5 +1,5 @@
 // orden-form.component.ts
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -25,6 +25,11 @@ export class OrdenFormComponent implements OnInit {
   esEdicion = false;
   ordenId?: number;
 
+  // Propiedades para manejo de imágenes
+  imagenSeleccionada: File | null = null;
+  previewUrl: string | null = null;
+  subiendoImagen = false;
+   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
   constructor(
     private fb: FormBuilder,
     private ordenService: OrdenService,
@@ -92,9 +97,50 @@ export class OrdenFormComponent implements OnInit {
           hora_limite: orden.hora_limite,
           cliente_nombre: orden.cliente_nombre
         });
+
+  // Si la orden tiene imagen de referencia, mostrarla
+        if (orden.imagen_referencia_url) {
+          this.previewUrl = orden.imagen_referencia_url;
+        }
+
       });
     }
   }
+
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        Swal.fire('Error', 'La imagen no puede ser mayor a 5MB', 'error');
+        return;
+      }
+      
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        Swal.fire('Error', 'Formato de imagen no válido', 'error');
+        return;
+      }
+
+      this.imagenSeleccionada = file;
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        this.previewUrl = e.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  removerImagen() {
+    this.imagenSeleccionada = null;
+    this.previewUrl = null;
+  }
+
+
+
+
+
+
 
   /**
    * Formatea una fecha para el input type="date"
@@ -142,30 +188,71 @@ export class OrdenFormComponent implements OnInit {
       }
       
       if (this.esEdicion && this.ordenId) {
-        this.ordenService.actualizarOrden(this.ordenId, formValue).subscribe({
-          next: () => {
-            Swal.fire('¡Éxito!', 'Orden actualizada correctamente', 'success');
-            this.router.navigate(['/ordenes']);
-          },
-          error: (error) => {
-            console.error('Error actualizando orden:', error);
-            Swal.fire('Error', 'No se pudo actualizar la orden', 'error');
+        // Actualizar orden (incluyendo imagen si se seleccionó)
+        const updateData = { ...formValue };
+        
+        if (this.imagenSeleccionada) {
+          const formData = new FormData();
+          Object.keys(updateData).forEach(key => {
+            if (updateData[key] !== null && updateData[key] !== undefined) {
+              formData.append(key, updateData[key]);
+            }
+          });
+          formData.append('imagen_referencia', this.imagenSeleccionada);
+          
+          this.ordenService.actualizarOrdenConImagen(this.ordenId, formData).subscribe({
+            next: () => {
+              this.subiendoImagen = false;
+              Swal.fire('¡Éxito!', 'Orden actualizada correctamente', 'success');
+              this.router.navigate(['/ordenes']);
+            },
+            error: (error) => {
+              this.subiendoImagen = false;
+              console.error('Error actualizando orden:', error);
+              Swal.fire('Error', 'No se pudo actualizar la orden', 'error');
+            }
+          });
+        } else {
+          this.ordenService.actualizarOrden(this.ordenId, updateData).subscribe({
+            next: () => {
+              this.subiendoImagen = false;
+              Swal.fire('¡Éxito!', 'Orden actualizada correctamente', 'success');
+              this.router.navigate(['/ordenes']);
+            },
+            error: (error) => {
+              this.subiendoImagen = false;
+              console.error('Error actualizando orden:', error);
+              Swal.fire('Error', 'No se pudo actualizar la orden', 'error');
+            }
+          });
+        }
+      } else {
+        // Crear nueva orden con imagen
+        const formData = new FormData();
+        Object.keys(formValue).forEach(key => {
+          if (formValue[key] !== null && formValue[key] !== undefined && formValue[key] !== '') {
+            formData.append(key, formValue[key]);
           }
         });
-      } else {
-        this.ordenService.crearOrden(formValue).subscribe({
+        
+        if (this.imagenSeleccionada) {
+          formData.append('imagen_referencia', this.imagenSeleccionada);
+        }
+        
+        this.ordenService.crearOrdenConImagen(formData).subscribe({
           next: () => {
+            this.subiendoImagen = false;
             Swal.fire('¡Éxito!', 'Orden creada correctamente', 'success');
             this.router.navigate(['/ordenes']);
           },
           error: (error) => {
+            this.subiendoImagen = false;
             console.error('Error creando orden:', error);
             Swal.fire('Error', 'No se pudo crear la orden', 'error');
           }
         });
       }
     } else {
-      // Mostrar errores de validación
       Object.keys(this.ordenForm.controls).forEach(key => {
         const control = this.ordenForm.get(key);
         if (control?.invalid) {

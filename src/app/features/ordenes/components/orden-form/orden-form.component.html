@@ -81,13 +81,58 @@
             >
             </div>
 
+<!-- NUEVA SECCIÓN: Imagen de referencia para la orden -->
+    <div class="form-section">
+      <h2 class="section-title">Imagen de Referencia (Opcional)</h2>
+      
+      <div class="image-upload-container">
+        <!-- Preview de imagen -->
+        <div class="image-preview-card" *ngIf="previewUrl">
+          <div class="image-preview-wrapper">
+            <img [src]="previewUrl" 
+                 alt="Vista previa" 
+                 class="image-preview">
+            <button type="button" class="btn-remove-image" (click)="removerImagen()" 
+                    title="Eliminar imagen">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Controles de subida -->
+        <div class="upload-area" [class.has-image]="previewUrl">
+          <div class="file-input-wrapper">
+            <input type="file" 
+                   (change)="onFileSelected($event)" 
+                   accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                   class="file-input"
+                   #fileInput>
+            
+            <button type="button" class="btn-upload" (click)="fileInput.click()">
+              <i class="fas fa-cloud-upload-alt"></i>
+              {{ previewUrl ? 'Cambiar imagen' : 'Subir imagen de referencia' }}
+            </button>
+            
+            <span class="file-name">
+              {{ imagenSeleccionada?.name || 'Ningún archivo seleccionado' }}
+            </span>
+          </div>
+          
+          <div class="upload-hint">
+            <i class="fas fa-info-circle"></i>
+            <span>Formatos permitidos: JPG, PNG, GIF, WEBP. Máximo 5MB. Esta imagen será exclusiva para esta orden.</span>
+          </div>
+        </div>
+      </div>
+    </div>
         <div class="form-actions">
           <button type="button" class="btn-secondary" routerLink="/ordenes">
             Cancelar
           </button>
-          <button type="submit" class="btn-primary" [disabled]="ordenForm.invalid">
-            {{ esEdicion ? 'Actualizar' : 'Guardar' }}
-          </button>
+         <button type="submit" class="btn-primary" [disabled]="ordenForm.invalid || subiendoImagen">
+        <i class="fas" [ngClass]="{'fa-spinner fa-spin': subiendoImagen, 'fa-save': !subiendoImagen}"></i>
+        {{ subiendoImagen ? 'Guardando...' : (esEdicion ? 'Actualizar' : 'Guardar') }}
+      </button>
         </div>
       </form>
     </div>
