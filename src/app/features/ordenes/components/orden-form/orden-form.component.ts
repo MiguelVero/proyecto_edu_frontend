@@ -46,7 +46,8 @@ export class OrdenFormComponent implements OnInit {
       prioridad: ['normal'],
       fecha_limite: [''],
       hora_limite: [''],
-      cliente_nombre: ['']
+      cliente_nombre: [''],
+       detalle_cliente: [''],  // <-- NUEVO CAMPO
     });
   }
 
@@ -95,7 +96,8 @@ export class OrdenFormComponent implements OnInit {
           prioridad: orden.prioridad,
           fecha_limite: fechaLimiteFormateada,
           hora_limite: orden.hora_limite,
-          cliente_nombre: orden.cliente_nombre
+          cliente_nombre: orden.cliente_nombre,
+           detalle_cliente: orden.detalle_cliente  // <-- NUEVO
         });
 
   // Si la orden tiene imagen de referencia, mostrarla

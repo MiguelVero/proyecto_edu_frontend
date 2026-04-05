@@ -257,3 +257,32 @@
 .upload-hint i {
     color: #8b5cf6;
 }
+/* Agregar al final del archivo */
+.detalle-group {
+    margin-top: 16px;
+}
+
+.detalle-textarea {
+    resize: vertical;
+    font-family: inherit;
+    line-height: 1.5;
+    min-height: 100px;
+}
+
+.optional {
+    font-size: 0.75rem;
+    font-weight: normal;
+    color: #94a3b8;
+    margin-left: 6px;
+}
+
+.text-muted {
+    display: block;
+    margin-top: 6px;
+    font-size: 0.7rem;
+    color: #94a3b8;
+}
+
+.text-muted i {
+    margin-right: 4px;
+}

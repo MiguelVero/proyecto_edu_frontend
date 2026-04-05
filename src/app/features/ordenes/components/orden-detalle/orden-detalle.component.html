@@ -148,10 +148,29 @@
         </div>
       </div>
 
-      <div *ngIf="orden.cliente_nombre" class="cliente-section">
-        <h3>Información del Cliente</h3>
-        <p>{{ orden.cliente_nombre }}</p>
+     <!-- Reemplaza la sección de Información del Cliente con esta versión mejorada -->
+<div *ngIf="orden.cliente_nombre" class="cliente-section">
+  <div class="cliente-header">
+    <h3><i class="fas fa-user"></i> Información del Cliente</h3>
+    <button class="btn-edit-cliente" (click)="editarDetalleCliente()" title="Editar detalle">
+      <i class="fas fa-edit"></i> Editar
+    </button>
+  </div>
+  <div class="cliente-info">
+    <div class="cliente-nombre">
+      <strong>Nombre:</strong> {{ orden.cliente_nombre }}
+    </div>
+    <div *ngIf="orden.detalle_cliente" class="cliente-detalle">
+      <strong>Detalle del Caso:</strong>
+      <div class="detalle-contenido">
+        {{ orden.detalle_cliente }}
       </div>
+    </div>
+    <div *ngIf="!orden.detalle_cliente" class="cliente-detalle vacio">
+      <i class="fas fa-info-circle"></i> Sin detalles adicionales
+    </div>
+  </div>
+</div>
 
       <div class="acciones">
         <button class="btn-whatsapp" (click)="enviarWhatsApp()">

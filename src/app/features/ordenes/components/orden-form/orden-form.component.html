@@ -70,16 +70,31 @@
           </div>
         </div>
 
-       <!-- DESPUÉS: input más compacto -->
-            <div class="form-group cliente-group">
-            <label>Cliente</label>
-            <input 
-                type="text" 
-                formControlName="cliente_nombre" 
-                class="form-control" 
-                placeholder="Nombre del paciente"
-            >
-            </div>
+   <!-- Reemplaza la sección del cliente con esta versión mejorada -->
+<div class="form-group cliente-group">
+  <label>Cliente</label>
+  <input 
+      type="text" 
+      formControlName="cliente_nombre" 
+      class="form-control" 
+      placeholder="Nombre del paciente"
+  >
+</div>
+
+<!-- NUEVA SECCIÓN: Detalle del caso del cliente -->
+<div class="form-group detalle-group">
+  <label>Detalle del Caso <span class="optional">(Opcional)</span></label>
+  <textarea 
+      formControlName="detalle_cliente" 
+      class="form-control detalle-textarea" 
+      rows="3"
+      placeholder="Ej: Diente #16 (superior derecho), necesita corona de zirconio, paciente alérgico a metales...">
+  </textarea>
+  <small class="text-muted">
+    <i class="fas fa-info-circle"></i> 
+    Especifique detalles como: pieza dental, lado (superior/inferior), materiales especiales, alergias, etc.
+  </small>
+</div>
 
 <!-- NUEVA SECCIÓN: Imagen de referencia para la orden -->
     <div class="form-section">

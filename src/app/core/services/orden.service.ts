@@ -17,6 +17,7 @@ export interface Orden {
   fecha_limite?: string;
   hora_limite?: string;
   cliente_nombre?: string;
+  detalle_cliente?: string;  // <-- NUEVO CAMPO
   imagen_referencia_url?: string;
   doctor?: any;
   servicio?: any;

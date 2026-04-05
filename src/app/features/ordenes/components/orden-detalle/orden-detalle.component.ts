@@ -432,4 +432,73 @@ subirImagenReferencia(file: File) {
     });
     console.log('🧹 OrdenDetalleComponent destruido');
   }
+// Agregar este método a OrdenDetalleComponent
+editarDetalleCliente() {
+    Swal.fire({
+        title: 'Editar Detalle del Cliente',
+        html: `
+            <div style="text-align: left;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Cliente:</label>
+                <input id="cliente-nombre" class="swal2-input" 
+                       value="${this.orden.cliente_nombre || ''}" 
+                       placeholder="Nombre del paciente"
+                       style="margin-bottom: 16px;">
+                
+                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Detalle del Caso:</label>
+                <textarea id="detalle-cliente" class="swal2-textarea" 
+                          rows="5" 
+                          placeholder="Ej: Diente #16, necesita corona, paciente alérgico...">${this.orden.detalle_cliente || ''}</textarea>
+                
+                <div style="font-size: 0.8rem; color: #64748b; margin-top: 8px;">
+                    <i class="fas fa-info-circle"></i> Incluya información relevante como:
+                    pieza dental, lado (superior/inferior), materiales especiales, alergias, etc.
+                </div>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Guardar cambios',
+        cancelButtonText: 'Cancelar',
+        preConfirm: () => {
+            const clienteNombre = (document.getElementById('cliente-nombre') as HTMLInputElement).value;
+            const detalleCliente = (document.getElementById('detalle-cliente') as HTMLTextAreaElement).value;
+            
+            if (!clienteNombre.trim()) {
+                Swal.showValidationMessage('El nombre del cliente es requerido');
+                return false;
+            }
+            
+            return { cliente_nombre: clienteNombre, detalle_cliente: detalleCliente };
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            this.subscriptions.push(
+                this.ordenService.actualizarOrden(this.orden.id, {
+                    cliente_nombre: result.value.cliente_nombre,
+                    detalle_cliente: result.value.detalle_cliente
+                }).subscribe({
+                    next: () => {
+                        this.orden.cliente_nombre = result.value.cliente_nombre;
+                        this.orden.detalle_cliente = result.value.detalle_cliente;
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Actualizado',
+                            text: 'La información del cliente se ha actualizado correctamente',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    },
+                    error: (error) => {
+                        console.error('Error actualizando cliente:', error);
+                        Swal.fire('Error', 'No se pudo actualizar la información', 'error');
+                    }
+                })
+            );
+        }
+    });
+}
+
+
+
+
+
 }
