@@ -107,4 +107,14 @@ export class OrdenService {
   getFechaServidor(): Observable<{ fecha: string }> {
   return this.http.get<{ fecha: string }>(`${this.apiUrl}/server-time`); // Necesitas crear este endpoint en el backend
 }
+// Agregar este método a OrdenService
+actualizarImagenReferencia(id: number, formData: FormData): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${id}/imagen-referencia`, formData).pipe(
+        timeout(10000),
+        catchError(error => {
+            console.error(`Error en actualizarImagenReferencia(${id}):`, error);
+            return throwError(() => error);
+        })
+    );
+}
 }

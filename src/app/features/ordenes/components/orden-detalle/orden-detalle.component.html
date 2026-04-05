@@ -27,31 +27,31 @@
         </span>
       </div>
 
-      <!-- Sección de imagen de referencia del servicio -->
+      <!-- Sección de imagen de referencia de la ORDEN -->
       <div class="servicio-imagen-section">
         <div class="servicio-imagen-header">
           <i class="fas fa-image"></i>
           <h3>Referencia del Servicio</h3>
           <button class="btn-edit-image" (click)="abrirSelectorImagen()" [disabled]="subiendoImagen">
             <i class="fas" [ngClass]="{'fa-camera': !subiendoImagen, 'fa-spinner fa-spin': subiendoImagen}"></i>
-            {{ subiendoImagen ? 'Subiendo...' : (orden.servicio?.imagen_url ? 'Cambiar' : 'Subir imagen') }}
+            {{ subiendoImagen ? 'Subiendo...' : (orden.imagen_referencia_url ? 'Cambiar' : 'Subir imagen') }}
           </button>
         </div>
         
         <div class="servicio-imagen-container">
-          <!-- Mostrar imagen si existe (usando ImageZoomComponent para zoom) -->
-          <div *ngIf="orden.servicio?.imagen_url" class="imagen-existente">
+          <!-- Mostrar imagen de referencia de la ORDEN si existe -->
+          <div *ngIf="orden.imagen_referencia_url" class="imagen-existente">
             <app-image-zoom 
-              [src]="orden.servicio?.imagen_url"
+              [src]="orden.imagen_referencia_url"
               [alt]="orden.servicio?.nombre"
               defaultImage="assets/images/default-service.png"
               class="servicio-zoom">
             </app-image-zoom>
-            <p class="servicio-imagen-caption">{{ orden.servicio?.nombre }}</p>
+            <p class="servicio-imagen-caption">Imagen de referencia para esta orden</p>
           </div>
           
           <!-- Placeholder cuando no hay imagen -->
-          <div *ngIf="!orden.servicio?.imagen_url" class="imagen-placeholder" (click)="abrirSelectorImagen()">
+          <div *ngIf="!orden.imagen_referencia_url" class="imagen-placeholder" (click)="abrirSelectorImagen()">
             <i class="fas fa-image"></i>
             <p>Sin imagen de referencia</p>
             <span class="placeholder-hint">Haz clic para subir una imagen</span>

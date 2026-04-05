@@ -136,59 +136,56 @@ export class OrdenDetalleComponent implements OnInit, OnDestroy {
   }
 
   // Método para cuando se selecciona un archivo
-  onImagenSeleccionada(event: Event) {
+// Actualiza onImagenSeleccionada para usar el nuevo método
+onImagenSeleccionada(event: Event) {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-      this.subirImagenServicio(input.files[0]);
-      // Limpiar el input para permitir seleccionar la misma imagen nuevamente
-      input.value = '';
+        this.subirImagenReferencia(input.files[0]);
+        input.value = '';
     }
-  }
+}
 
   // Subir imagen del servicio
-  subirImagenServicio(file: File) {
+// Reemplaza el método subirImagenServicio por:
+subirImagenReferencia(file: File) {
     if (file.size > 5 * 1024 * 1024) {
-      Swal.fire('Error', 'La imagen no puede ser mayor a 5MB', 'error');
-      return;
+        Swal.fire('Error', 'La imagen no puede ser mayor a 5MB', 'error');
+        return;
     }
     
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
-      Swal.fire('Error', 'Formato no soportado. Use JPG, PNG, GIF o WEBP', 'error');
-      return;
+        Swal.fire('Error', 'Formato no soportado. Use JPG, PNG, GIF o WEBP', 'error');
+        return;
     }
 
     this.subiendoImagen = true;
 
     const formData = new FormData();
     formData.append('imagen', file);
-    formData.append('nombre', this.orden.servicio.nombre);
-    if (this.orden.servicio.precio_referencial) {
-      formData.append('precio_referencial', this.orden.servicio.precio_referencial.toString());
-    }
 
     this.subscriptions.push(
-      this.servicioService.actualizarServicio(this.orden.servicio.id, formData).subscribe({
-        next: (response) => {
-          this.subiendoImagen = false;
-          this.orden.servicio.imagen_url = response.servicio.imagen_url;
-          
-          Swal.fire({
-            icon: 'success',
-            title: '¡Imagen actualizada!',
-            text: 'La imagen de referencia del servicio se ha actualizado correctamente',
-            timer: 2000,
-            showConfirmButton: false
-          });
-        },
-        error: (error) => {
-          this.subiendoImagen = false;
-          console.error('Error subiendo imagen:', error);
-          Swal.fire('Error', 'No se pudo subir la imagen. Intente nuevamente.', 'error');
-        }
-      })
+        this.ordenService.actualizarImagenReferencia(this.orden.id, formData).subscribe({
+            next: (response) => {
+                this.subiendoImagen = false;
+                this.orden.imagen_referencia_url = response.imagen_url;
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Imagen actualizada!',
+                    text: 'La imagen de referencia para esta orden se ha actualizado correctamente',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            },
+            error: (error) => {
+                this.subiendoImagen = false;
+                console.error('Error subiendo imagen:', error);
+                Swal.fire('Error', 'No se pudo subir la imagen. Intente nuevamente.', 'error');
+            }
+        })
     );
-  }
+}
 
   // Métodos de acciones (mantener los existentes)
   enviarWhatsApp() {
