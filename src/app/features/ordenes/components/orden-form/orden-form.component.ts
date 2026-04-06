@@ -109,29 +109,76 @@ export class OrdenFormComponent implements OnInit {
     }
   }
 
-  onFileSelected(event: any) {
-    const file = event.target.files[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        Swal.fire('Error', 'La imagen no puede ser mayor a 5MB', 'error');
-        return;
-      }
-      
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-      if (!allowedTypes.includes(file.type)) {
-        Swal.fire('Error', 'Formato de imagen no válido', 'error');
-        return;
-      }
-
-      this.imagenSeleccionada = file;
-      
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        this.previewUrl = e.target?.result as string;
-      };
-      reader.readAsDataURL(file);
+// Reemplaza el método onFileSelected con esta versión
+onFileSelected(event: any) {
+  const file = event.target.files[0];
+  if (file) {
+    // Mostrar información del archivo para depuración
+    console.log('📁 Archivo seleccionado:', {
+      nombre: file.name,
+      tamaño: (file.size / 1024 / 1024).toFixed(2) + ' MB',
+      tipo: file.type
+    });
+    
+    // Validar tamaño - Aumentado a 10MB (10000 * 1024 = 10,485,760 bytes)
+    const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+    if (file.size > MAX_SIZE) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Imagen muy grande',
+        text: `La imagen no puede superar los 10MB. Actualmente pesa ${(file.size / 1024 / 1024).toFixed(2)}MB. Por favor, comprime la imagen o usa una más pequeña.`,
+        confirmButtonColor: '#f43f5e'
+      });
+      // Limpiar el input
+      this.fileInput.nativeElement.value = '';
+      return;
     }
+    
+    // Validar tipo - formatos comunes de móvil
+    const allowedTypes = [
+      'image/jpeg', 
+      'image/jpg', 
+      'image/png', 
+      'image/gif', 
+      'image/webp',
+      'image/avif',
+      'image/heic',  // Formato de iPhone
+      'image/heif'   // Formato de iPhone
+    ];
+    
+    // También validar por extensión
+    const extension = file.name.split('.').pop()?.toLowerCase();
+    const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'heic', 'heif'];
+    
+    if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(extension || '')) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Formato no soportado',
+        text: 'Formatos permitidos: JPG, JPEG, PNG, GIF, WEBP, AVIF, HEIC',
+        confirmButtonColor: '#f43f5e'
+      });
+      // Limpiar el input
+      this.fileInput.nativeElement.value = '';
+      return;
+    }
+
+    this.imagenSeleccionada = file;
+    
+    // Crear preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.previewUrl = e.target?.result as string;
+    };
+    reader.onloadend = () => {
+      console.log('✅ Preview de imagen creado');
+    };
+    reader.onerror = (error) => {
+      console.error('❌ Error leyendo archivo:', error);
+      Swal.fire('Error', 'No se pudo leer la imagen', 'error');
+    };
+    reader.readAsDataURL(file);
   }
+}
 
   removerImagen() {
     this.imagenSeleccionada = null;
