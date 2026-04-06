@@ -67,14 +67,40 @@ export class DoctorFormComponent implements OnInit, OnDestroy  {
     }
   }
 
-  onFileSelected(event: any) {
-    this.archivoSeleccionado = event.target.files[0];
-    if (this.archivoSeleccionado) {
-      const reader = new FileReader();
-      reader.onload = (e) => this.imagenPreview = e.target?.result as string;
-      reader.readAsDataURL(this.archivoSeleccionado);
+// En doctor-form.component.ts, actualiza la validación
+onFileSelected(event: any) {
+  this.archivoSeleccionado = event.target.files[0];
+  if (this.archivoSeleccionado) {
+    // Validar tamaño (15MB)
+    if (this.archivoSeleccionado.size > 15 * 1024 * 1024) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Imagen muy grande',
+        text: 'La imagen no puede superar los 15MB',
+        confirmButtonColor: '#f43f5e'
+      });
+      this.archivoSeleccionado = undefined;
+      return;
     }
+    
+    // Validar tipo
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/avif', 'image/heic', 'image/heif'];
+    if (!allowedTypes.includes(this.archivoSeleccionado.type)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Formato no soportado',
+        text: 'Formatos permitidos: JPG, PNG, GIF, WEBP, AVIF, HEIC',
+        confirmButtonColor: '#f43f5e'
+      });
+      this.archivoSeleccionado = undefined;
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = (e) => this.imagenPreview = e.target?.result as string;
+    reader.readAsDataURL(this.archivoSeleccionado);
   }
+}
 
    onSubmit() {
     if (this.doctorForm.valid) {

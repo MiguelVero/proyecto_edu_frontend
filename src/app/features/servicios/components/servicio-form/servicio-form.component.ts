@@ -66,32 +66,42 @@ export class ServicioFormComponent implements OnInit, OnDestroy {
     }
   }
 
-  onFileSelected(event: any) {
-    const file = event.target.files[0];
-    if (file) {
-      // Validar tamaño (5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        Swal.fire('Error', 'La imagen no puede ser mayor a 5MB', 'error');
-        return;
-      }
-      
-      // Validar tipo
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/avif', 'image/webp'];
-      if (!allowedTypes.includes(file.type)) {
-        Swal.fire('Error', 'Formato de imagen no válido', 'error');
-        return;
-      }
-
-      this.imagenSeleccionada = file;
-      
-      // Crear preview
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        this.previewUrl = e.target?.result as string;
-      };
-      reader.readAsDataURL(file);
+ // En servicio-form.component.ts, actualiza onFileSelected
+onFileSelected(event: any) {
+  const file = event.target.files[0];
+  if (file) {
+    // Validar tamaño (15MB)
+    if (file.size > 15 * 1024 * 1024) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Imagen muy grande',
+        text: 'La imagen no puede superar los 15MB',
+        confirmButtonColor: '#f43f5e'
+      });
+      return;
     }
+    
+    // Validar tipo - incluir HEIC/HEIF
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/avif', 'image/webp', 'image/heic', 'image/heif'];
+    if (!allowedTypes.includes(file.type)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Formato no soportado',
+        text: 'Formatos permitidos: JPG, PNG, GIF, AVIF, WEBP, HEIC',
+        confirmButtonColor: '#f43f5e'
+      });
+      return;
+    }
+
+    this.imagenSeleccionada = file;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.previewUrl = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
   }
+}
 
   removerImagen() {
     this.imagenSeleccionada = null;
