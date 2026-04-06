@@ -49,6 +49,7 @@ itemsPorPagina: number = 5;
 totalPaginas: number = 1;
 ordenesPaginadas: any[] = [];
 fechaServidorHoy: string = '';
+ordenesSeleccionadas: any[] = [];
     // Filtros avanzados
   filtros = {
     busquedaGlobal: '',
@@ -206,6 +207,135 @@ private guardarFiltros() {
   }
 }
 
+// Getter para saber si todas están seleccionadas
+get todasSeleccionadas(): boolean {
+  return this.ordenesPaginadas.length > 0 && 
+         this.ordenesSeleccionadas.length === this.ordenesPaginadas.length;
+}
+
+// Getter para saber si algunas están seleccionadas
+get algunasSeleccionadas(): boolean {
+  return this.ordenesSeleccionadas.length > 0 && 
+         this.ordenesSeleccionadas.length < this.ordenesPaginadas.length;
+}
+
+// Verificar si una orden está seleccionada
+estaSeleccionada(orden: any): boolean {
+  return this.ordenesSeleccionadas.some(selected => selected.id === orden.id);
+}
+
+// Seleccionar/Deseleccionar una orden
+toggleSeleccion(orden: any, event: any) {
+  if (event.target.checked) {
+    this.ordenesSeleccionadas.push(orden);
+  } else {
+    this.ordenesSeleccionadas = this.ordenesSeleccionadas.filter(o => o.id !== orden.id);
+  }
+}
+
+// Seleccionar/Deseleccionar todas las órdenes de la página actual
+seleccionarTodas(event: any) {
+  if (event.target.checked) {
+    // Agregar todas las órdenes de la página actual que no estén ya seleccionadas
+    this.ordenesPaginadas.forEach(orden => {
+      if (!this.estaSeleccionada(orden)) {
+        this.ordenesSeleccionadas.push(orden);
+      }
+    });
+  } else {
+    // Remover todas las órdenes de la página actual
+    this.ordenesSeleccionadas = this.ordenesSeleccionadas.filter(
+      selected => !this.ordenesPaginadas.some(p => p.id === selected.id)
+    );
+  }
+}
+
+// Limpiar todas las selecciones
+limpiarSeleccion() {
+  this.ordenesSeleccionadas = [];
+}
+
+// Eliminar órdenes seleccionadas masivamente
+eliminarSeleccionadas() {
+  if (this.ordenesSeleccionadas.length === 0) return;
+  
+  const cantidad = this.ordenesSeleccionadas.length;
+  const ordenesTexto = cantidad === 1 ? 'esta orden' : `estas ${cantidad} órdenes`;
+  
+  Swal.fire({
+    title: `¿Eliminar ${cantidad} orden(es)?`,
+    html: `
+      <div style="text-align: left;">
+        <p>¿Está seguro de eliminar ${ordenesTexto}?</p>
+        <div style="max-height: 200px; overflow-y: auto; margin-top: 10px; padding: 5px;">
+          ${this.ordenesSeleccionadas.map(o => 
+            `<div style="padding: 5px; border-bottom: 1px solid #e2e8f0;">
+               <strong>${o.id_externo}</strong> - ${o.doctor?.nombre} - ${o.servicio?.nombre}
+             </div>`
+          ).join('')}
+        </div>
+        <p class="text-danger" style="margin-top: 10px; color: #f43f5e;">
+          <i class="fas fa-exclamation-triangle"></i> Esta acción no se puede deshacer.
+        </p>
+      </div>
+    `,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: `Sí, eliminar ${cantidad} orden(es)`,
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#f43f5e'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      const ordenesAEliminar = [...this.ordenesSeleccionadas];
+      let eliminadas = 0;
+      let errores = 0;
+      
+      ordenesAEliminar.forEach(orden => {
+        this.ordenService.eliminarOrden(orden.id).subscribe({
+          next: () => {
+            eliminadas++;
+            // Eliminar de la lista local
+            const index = this.ordenes.findIndex(o => o.id === orden.id);
+            if (index !== -1) this.ordenes.splice(index, 1);
+            
+            // Si ya terminamos todas
+            if (eliminadas + errores === ordenesAEliminar.length) {
+              this.limpiarSeleccion();
+              this.filtrarOrdenes();
+              
+              Swal.fire({
+                icon: 'success',
+                title: '¡Eliminadas!',
+                html: `Se eliminaron <strong>${eliminadas}</strong> orden(es) correctamente.`,
+                timer: 2000,
+                showConfirmButton: false
+              });
+            }
+          },
+          error: (error) => {
+            errores++;
+            console.error(`Error eliminando orden ${orden.id_externo}:`, error);
+            
+            if (eliminadas + errores === ordenesAEliminar.length) {
+              this.limpiarSeleccion();
+              this.filtrarOrdenes();
+              
+              if (errores > 0) {
+                Swal.fire({
+                  icon: 'warning',
+                  title: 'Eliminación parcial',
+                  html: `Se eliminaron <strong>${eliminadas}</strong> orden(es), pero <strong>${errores}</strong> no pudieron ser eliminadas.`,
+                  timer: 3000,
+                  showConfirmButton: true
+                });
+              }
+            }
+          }
+        });
+      });
+    }
+  });
+}
 
 // Modificar extraerOpcionesFiltros
 extraerOpcionesFiltros() {
@@ -552,8 +682,12 @@ enviarWhatsApp(orden: any) {
 }
 
 
-// Agregar este método después de verTicket
-eliminarOrden(orden: any) {
+// Modificar el método eliminarOrden existente para que no interfiera con la selección
+eliminarOrden(orden: any, event?: Event) {
+  if (event) {
+    event.stopPropagation();
+  }
+  
   Swal.fire({
     title: '¿Eliminar orden?',
     text: `¿Está seguro de eliminar la orden #${orden.id_externo}? Esta acción no se puede deshacer.`,
@@ -567,6 +701,17 @@ eliminarOrden(orden: any) {
       this.subscriptions.push(
         this.ordenService.eliminarOrden(orden.id).subscribe({
           next: () => {
+            // Eliminar de la lista local
+            const index = this.ordenes.findIndex(o => o.id === orden.id);
+            if (index !== -1) this.ordenes.splice(index, 1);
+            
+            // Si estaba seleccionada, quitarla de selección
+            if (this.estaSeleccionada(orden)) {
+              this.ordenesSeleccionadas = this.ordenesSeleccionadas.filter(o => o.id !== orden.id);
+            }
+            
+            this.filtrarOrdenes();
+            
             Swal.fire({
               icon: 'success',
               title: '¡Eliminada!',
@@ -574,7 +719,6 @@ eliminarOrden(orden: any) {
               timer: 2000,
               showConfirmButton: false
             });
-            this.cargarOrdenes(); // Recargar la lista
           },
           error: (error) => {
             console.error('Error eliminando orden:', error);

@@ -15,6 +15,22 @@
       <i class="fas fa-plus"></i> Nueva Orden
     </button>
   </div>
+ <!-- Barra de selección múltiple (aparece cuando hay elementos seleccionados) -->
+  <div class="selection-bar" *ngIf="ordenesSeleccionadas.length > 0">
+    <div class="selection-info">
+      <i class="fas fa-check-circle"></i>
+      <span>{{ ordenesSeleccionadas.length }} elemento(s) seleccionado(s)</span>
+    </div>
+    <div class="selection-actions">
+      <button class="btn-selection btn-danger" (click)="eliminarSeleccionadas()">
+        <i class="fas fa-trash-alt"></i> Eliminar seleccionados
+      </button>
+      <button class="btn-selection btn-secondary" (click)="limpiarSeleccion()">
+        <i class="fas fa-times"></i> Cancelar
+      </button>
+    </div>
+  </div>
+
 
   <!-- Barra de filtros mejorada -->
   <div class="filtros-bar">
@@ -47,6 +63,14 @@
   <table class="ordenes-table">
     <thead>
       <tr>
+           <th class="col-seleccion">
+            <input 
+              type="checkbox" 
+              [checked]="todasSeleccionadas" 
+              [indeterminate]="algunasSeleccionadas"
+              (change)="seleccionarTodas($event)"
+              class="checkbox-select-all">
+          </th>
         <th class="col-doctor">Doctor / Servicio</th>
         <th class="col-estado">Estado</th>
         <th class="col-acciones">Acciones</th>
@@ -54,8 +78,15 @@
     </thead>
     <tbody>
       <tr *ngFor="let orden of ordenesPaginadas" 
-          [ngClass]="{'row-vencida': isVencida(orden) && calcularSaldo(orden) > 0, 'row-terminada': orden.estado === 'terminado'}">
-        <td class="col-doctor">
+           [ngClass]="{'row-selected': estaSeleccionada(orden), 'row-vencida': isVencida(orden) && calcularSaldo(orden) > 0, 'row-terminada': orden.estado === 'terminado'}">
+          <td class="col-seleccion">
+            <input 
+              type="checkbox" 
+              [checked]="estaSeleccionada(orden)"
+              (change)="toggleSeleccion(orden, $event)"
+              class="checkbox-select-item">
+          </td>
+           <td class="col-doctor">
           <div class="doctor-cell">
             <div class="doctor-images">
               <div class="doctor-avatar">
