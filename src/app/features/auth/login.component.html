@@ -2,36 +2,59 @@
 <div class="login-container">
   <div class="login-card">
     <div class="login-header">
-      <i class="fas fa-tooth"></i>
+      <div class="logo-icon">
+        <i class="fas fa-tooth"></i>
+      </div>
       <h1>LAB.ROSAS</h1>
+      <p class="subtitle">Sistema de Gestión Dental</p>
     </div>
 
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Usuario</mat-label>
-        <input matInput formControlName="nombre_usuario" placeholder="Ingrese su usuario">
-        <mat-icon matSuffix>person</mat-icon>
-        <mat-error *ngIf="loginForm.get('nombre_usuario')?.hasError('required')">
-          El usuario es requerido
-        </mat-error>
-      </mat-form-field>
+      <div class="input-group">
+        <div class="input-icon">
+          <i class="fas fa-user"></i>
+        </div>
+        <div class="input-field">
+          <input 
+            type="text" 
+            formControlName="nombre_usuario" 
+            placeholder=" "
+            autocomplete="username">
+          <label>Usuario</label>
+          <div class="error-message" *ngIf="loginForm.get('nombre_usuario')?.touched && loginForm.get('nombre_usuario')?.hasError('required')">
+            <i class="fas fa-exclamation-circle"></i> El usuario es requerido
+          </div>
+        </div>
+      </div>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Contraseña</mat-label>
-        <input matInput [type]="hidePassword ? 'password' : 'text'" 
-               formControlName="contrasena" 
-               placeholder="Ingrese su contraseña">
-        <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
-          <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
-        </button>
-        <mat-error *ngIf="loginForm.get('contrasena')?.hasError('required')">
-          La contraseña es requerida
-        </mat-error>
-      </mat-form-field>
+      <div class="input-group">
+        <div class="input-icon">
+          <i class="fas fa-lock"></i>
+        </div>
+        <div class="input-field">
+          <input 
+            [type]="hidePassword ? 'password' : 'text'" 
+            formControlName="contrasena" 
+            placeholder=" "
+            autocomplete="current-password">
+          <label>Contraseña</label>
+          <button type="button" class="toggle-password" (click)="hidePassword = !hidePassword">
+            <i class="fas" [ngClass]="{'fa-eye-slash': hidePassword, 'fa-eye': !hidePassword}"></i>
+          </button>
+          <div class="error-message" *ngIf="loginForm.get('contrasena')?.touched && loginForm.get('contrasena')?.hasError('required')">
+            <i class="fas fa-exclamation-circle"></i> La contraseña es requerida
+          </div>
+        </div>
+      </div>
 
-      <button mat-raised-button color="primary" type="submit" [disabled]="loginForm.invalid">
-        <i class="fas fa-shield-halved"></i> INGRESAR
+      <button type="submit" class="btn-login" [disabled]="loginForm.invalid || isLoading">
+        <span *ngIf="!isLoading">INGRESAR</span>
+        <span *ngIf="isLoading" class="spinner"></span>
       </button>
     </form>
+
+    <div class="login-footer">
+      <p>© 2024 LAB.ROSAS - Todos los derechos reservados</p>
+    </div>
   </div>
 </div>
