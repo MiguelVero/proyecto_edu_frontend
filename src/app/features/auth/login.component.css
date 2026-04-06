@@ -11,7 +11,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1f274d 0%, #5a3a7a 100%);
   position: relative;
   overflow: hidden;
   padding: 20px;
@@ -299,17 +299,6 @@
 }
 
 /* Footer */
-.login-footer {
-  text-align: center;
-  margin-top: 32px;
-  padding-top: 24px;
-  border-top: 1px solid #e2e8f0;
-}
-
-.login-footer p {
-  font-size: 12px;
-  color: #94a3b8;
-}
 
 /* Responsive */
 @media (max-width: 480px) {
@@ -386,8 +375,4 @@
 
 [data-theme="dark"] .toggle-password {
   color: #94a3b8;
-}
-
-[data-theme="dark"] .login-footer {
-  border-top-color: #334155;
 }
