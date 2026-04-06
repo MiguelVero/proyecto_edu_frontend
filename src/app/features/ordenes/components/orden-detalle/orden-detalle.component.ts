@@ -146,16 +146,50 @@ onImagenSeleccionada(event: Event) {
 }
 
   // Subir imagen del servicio
-// Reemplaza el método subirImagenServicio por:
+// Reemplaza el método subirImagenReferencia con esta versión mejorada
 subirImagenReferencia(file: File) {
-    if (file.size > 5 * 1024 * 1024) {
-        Swal.fire('Error', 'La imagen no puede ser mayor a 5MB', 'error');
+    // Mostrar información del archivo para depuración
+    console.log('📁 Archivo seleccionado para orden:', {
+        nombre: file.name,
+        tamaño: (file.size / 1024 / 1024).toFixed(2) + ' MB',
+        tipo: file.type
+    });
+    
+    // Validar tamaño - 15MB (15000 * 1024 = 15,728,640 bytes)
+    const MAX_SIZE = 15 * 1024 * 1024; // 15MB
+    if (file.size > MAX_SIZE) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Imagen muy grande',
+            text: `La imagen no puede superar los 15MB. Actualmente pesa ${(file.size / 1024 / 1024).toFixed(2)}MB. Por favor, comprime la imagen o usa una más pequeña.`,
+            confirmButtonColor: '#f43f5e'
+        });
         return;
     }
     
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-    if (!allowedTypes.includes(file.type)) {
-        Swal.fire('Error', 'Formato no soportado. Use JPG, PNG, GIF o WEBP', 'error');
+    // Validar tipo - soporte para formatos comunes y HEIC/HEIF (iPhone)
+    const allowedTypes = [
+        'image/jpeg', 
+        'image/jpg', 
+        'image/png', 
+        'image/gif', 
+        'image/webp',
+        'image/avif',
+        'image/heic',
+        'image/heif'
+    ];
+    
+    // También validar por extensión
+    const extension = file.name.split('.').pop()?.toLowerCase();
+    const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'heic', 'heif'];
+    
+    if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(extension || '')) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Formato no soportado',
+            text: 'Formatos permitidos: JPG, JPEG, PNG, GIF, WEBP, AVIF, HEIC',
+            confirmButtonColor: '#f43f5e'
+        });
         return;
     }
 
@@ -180,15 +214,29 @@ subirImagenReferencia(file: File) {
             },
             error: (error) => {
                 this.subiendoImagen = false;
-                console.error('Error subiendo imagen:', error);
-                 // Mostrar mensaje de error más específico
+                console.error('❌ Error subiendo imagen:', error);
+                
+                // Mostrar mensaje de error más específico
                 let mensajeError = 'No se pudo subir la imagen.';
                 if (error.error && error.error.error) {
                     mensajeError = error.error.error;
                 } else if (error.message) {
                     mensajeError = error.message;
                 }
-                Swal.fire('Error', 'No se pudo subir la imagen. Intente nuevamente.', 'error');
+                
+                // Si el error es sobre el tamaño de la imagen
+                if (mensajeError.toLowerCase().includes('tamaño') || 
+                    mensajeError.toLowerCase().includes('size') ||
+                    mensajeError.toLowerCase().includes('large')) {
+                    mensajeError = 'La imagen es demasiado grande. Máximo 15MB permitido.';
+                }
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: mensajeError,
+                    confirmButtonColor: '#f43f5e'
+                });
             }
         })
     );

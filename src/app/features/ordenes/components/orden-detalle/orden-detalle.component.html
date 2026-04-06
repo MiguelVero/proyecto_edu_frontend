@@ -65,13 +65,13 @@
         </div>
       </div>
 
-      <!-- Input oculto para seleccionar archivo -->
-      <input 
-        type="file" 
-        #fileInput 
-        style="display: none" 
-        accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
-        (change)="onImagenSeleccionada($event)">
+      <!-- Input oculto para seleccionar archivo - Actualizar accept -->
+<input 
+    type="file" 
+    #fileInput 
+    style="display: none" 
+    accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,image/avif,image/heic,image/heif"
+    (change)="onImagenSeleccionada($event)">
 
       <div class="info-grid">
         <div class="info-item">
