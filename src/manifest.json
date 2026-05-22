@@ -1,0 +1,26 @@
+{
+  "name": "Lab.Rosas — Sistema de Órdenes",
+  "short_name": "Lab.Rosas",
+  "description": "Sistema de gestión de órdenes de laboratorio dental",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#6366f1",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "72x72 96x96 128x128 256x256",
+      "type": "image/x-icon",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "medical"],
+  "lang": "es",
+  "dir": "ltr"
+}
