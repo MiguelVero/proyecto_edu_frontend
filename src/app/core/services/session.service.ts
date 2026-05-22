@@ -28,6 +28,11 @@ export class SessionService implements OnDestroy {
   /** Segundos antes del cierre en que se muestra la advertencia */
   private readonly TIEMPO_ADVERTENCIA_SEG = 60; // 1 minuto de advertencia
 
+  /** Tiempo total de inactividad en segundos (leído desde ConfigService) */
+  private get TIEMPO_INACTIVIDAD_SEG(): number {
+    return this.configService.config.tiempoCierreAutomatico * 60;
+  }
+
   // ─── Estado ───────────────────────────────────────────────────────────────
   private ultimaActividad: number = Date.now();
   private timerInactividad: any = null;
