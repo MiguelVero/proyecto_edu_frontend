@@ -27,6 +27,8 @@ self.addEventListener('install', (event) => {
       });
     })
   );
+  // Activar inmediatamente sin esperar a que se cierren las pestañas anteriores
+  // Activar inmediatamente sin esperar a que se cierren las pestañas
   self.skipWaiting();
 });
 
@@ -46,6 +48,7 @@ self.addEventListener('activate', (event) => {
       )
     )
   );
+  // Tomar control de todas las pestañas abiertas inmediatamente
   self.clients.claim();
 });
 
@@ -54,7 +57,7 @@ self.addEventListener('activate', (event) => {
 // (no las de Firebase, que son manejadas por firebase-messaging-sw.js)
 
 self.addEventListener('push', (event) => {
-  console.log('[SW] Notificación push recibida');
+  console.log('[SW] Notificación push recibida desde servidor');
 
   let datos = {
     titulo: '📋 Lab.Rosas',
@@ -62,7 +65,8 @@ self.addEventListener('push', (event) => {
     icono: '/favicon.ico',
     badge: '/favicon.ico',
     tag: 'labrosas-push',
-    url: '/ordenes'
+    url: '/ordenes',
+    vibrate: [200, 100, 200]
   };
 
   if (event.data) {
@@ -91,6 +95,30 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     self.registration.showNotification(datos.titulo, opciones)
   );
+});
+
+// ─── Notificaciones programadas (desde la app via postMessage) ───────────────
+
+self.addEventListener('message', (event) => {
+  if (!event.data) return;
+
+  const { tipo, titulo, cuerpo, tag, url } = event.data;
+
+  if (tipo === 'MOSTRAR_NOTIFICACION') {
+    const opciones = {
+      body: cuerpo || 'Notificación de Lab.Rosas',
+      icon: '/favicon.ico',
+      badge: '/favicon.ico',
+      tag: tag || `labrosas-${Date.now()}`,
+      data: { url: url || '/ordenes' },
+      requireInteraction: false,
+      vibrate: [200, 100, 200]
+    };
+
+    self.registration.showNotification(titulo || '📋 Lab.Rosas', opciones)
+      .then(() => console.log('[SW] Notificación programada mostrada:', titulo))
+      .catch(err => console.error('[SW] Error mostrando notificación:', err));
+  }
 });
 
 // ─── Click en notificación ────────────────────────────────────────────────────
@@ -164,8 +192,47 @@ self.addEventListener('fetch', (event) => {
 
   // Para el resto, intentar red primero, caché como fallback
   event.respondWith(
-    fetch(event.request).catch(() =>
-      caches.match(event.request).then((cached) => cached || fetch(event.request))
-    )
+    fetch(event.request)
+      .then((response) => {
+        // Cachear respuestas exitosas de navegación
+        if (response.ok && event.request.method === 'GET') {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone);
+          });
+  if (url.pathname.startsWith('/api') || url.origin !== self.location.origin) return;
+
+  // Solo interceptar GET
+  if (event.request.method !== 'GET') return;
+
+  // Para el resto, intentar red primero, caché como fallback
+  event.respondWith(
+    fetch(event.request)
+      .then(response => {
+        // Cachear respuestas exitosas de assets estáticos
+        if (response.ok && (
+          url.pathname.endsWith('.js') ||
+          url.pathname.endsWith('.css') ||
+          url.pathname.endsWith('.ico') ||
+          url.pathname.endsWith('.png') ||
+          url.pathname.endsWith('.woff2')
+        )) {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseClone));
+        }
+        return response;
+      })
+      .catch(() =>
+        caches.match(event.request).then((cached) => {
+        caches.match(event.request).then(cached => {
+          if (cached) return cached;
+          // Para navegación, devolver el index.html cacheado (SPA fallback)
+          if (event.request.mode === 'navigate') {
+            return caches.match('/');
+          }
+          return new Response('', { status: 503, statusText: 'Service Unavailable' });
+        })
+      )
   );
 });
+

@@ -49,6 +49,9 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    // Registrar Service Worker al iniciar la app (independiente de la autenticación)
+    this.registrarServiceWorker();
+
     // Redirigir si el token es inválido después de la verificación
     this.authSubscription = this.authService.authLoading$.subscribe((loading) => {
       if (!loading) {

@@ -29,6 +29,15 @@ export class ConfiguracionComponent implements OnInit, OnDestroy {
   solicitandoFcm = false;
   private sub?: Subscription;
 
+  // Estado de permisos de notificación
+  get permisoNotificacion(): NotificationPermission {
+    return this.notificationService.estadoPermiso;
+  }
+
+  get swSoportado(): boolean {
+    return 'serviceWorker' in navigator;
+  }
+
   // Etiquetas legibles para los sliders
   readonly labelsCierre: Record<number, string> = {
     5: '5 min',
@@ -216,12 +225,18 @@ export class ConfiguracionComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Solicitar permiso si no se tiene
+    if (this.permisoNotificacion !== 'granted') {
+      await this.solicitarPermisoNotificacion();
+      if (this.permisoNotificacion !== 'granted') return;
+    }
+
     // Vibración de prueba
     if (cfg.vibracionHabilitada && 'vibrate' in navigator) {
       navigator.vibrate([200, 100, 200]);
     }
 
-    // Sonido de prueba (beep sintético con Web Audio API)
+    // Sonido de prueba
     if (cfg.sonidoHabilitado) {
       this.reproducirBeep();
     }
@@ -234,15 +249,17 @@ export class ConfiguracionComponent implements OnInit, OnDestroy {
 
     Swal.fire({
       icon: 'success',
-      title: '🔔 Notificación de prueba',
+      title: '🔔 Notificación enviada',
       html: `
-        <p>Así se verá una notificación del sistema.</p>
+        <p>La notificación fue enviada a tu dispositivo.</p>
         <small style="color:#64748b">
           Anticipación configurada: <strong>${this.formatMinutos(cfg.tiempoNotificacionAnticipada)}</strong>
         </small>
       `,
       confirmButtonColor: '#6366f1',
-      confirmButtonText: 'Entendido'
+      confirmButtonText: 'Entendido',
+      timer: 3000,
+      timerProgressBar: true
     });
   }
 

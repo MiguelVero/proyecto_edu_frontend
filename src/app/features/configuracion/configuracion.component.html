@@ -187,12 +187,49 @@
         </div>
       </div>
 
+      <!-- Estado del permiso de notificaciones -->
+      <div class="permission-banner"
+           [class.permission-granted]="permisoNotificacion === 'granted'"
+           [class.permission-denied]="permisoNotificacion === 'denied'"
+           [class.permission-default]="permisoNotificacion === 'default'">
+        <div class="permission-info">
+          <i class="fas"
+             [class.fa-check-circle]="permisoNotificacion === 'granted'"
+             [class.fa-times-circle]="permisoNotificacion === 'denied'"
+             [class.fa-question-circle]="permisoNotificacion === 'default'"></i>
+          <div>
+            <span class="permission-label">
+              <ng-container *ngIf="permisoNotificacion === 'granted'">✅ Notificaciones activadas</ng-container>
+              <ng-container *ngIf="permisoNotificacion === 'denied'">❌ Notificaciones bloqueadas</ng-container>
+              <ng-container *ngIf="permisoNotificacion === 'default'">⚠️ Permiso pendiente</ng-container>
+            </span>
+            <span class="permission-desc">
+              <ng-container *ngIf="permisoNotificacion === 'granted'">Recibirás alertas en tu celular incluso con la app cerrada.</ng-container>
+              <ng-container *ngIf="permisoNotificacion === 'denied'">Ve a Configuración del navegador → Notificaciones → Permitir para este sitio.</ng-container>
+              <ng-container *ngIf="permisoNotificacion === 'default'">Haz clic en "Activar notificaciones" para recibir alertas en tu celular.</ng-container>
+            </span>
+          </div>
+        </div>
+        <button *ngIf="permisoNotificacion !== 'granted'"
+                class="btn-permission"
+                (click)="solicitarPermisoNotificacion()"
+                type="button">
+          <i class="fas fa-bell"></i> Activar notificaciones
+        </button>
+      </div>
+
+      <!-- Service Worker status -->
+      <div class="sw-status" *ngIf="swSoportado">
+        <i class="fas fa-cog fa-spin sw-icon"></i>
+        <span>Service Worker activo — notificaciones funcionan con app cerrada</span>
+      </div>
+
       <!-- Botón probar notificación -->
       <div class="test-notif-row">
         <button class="btn-test" (click)="probarNotificacion()" type="button">
-          <i class="fas fa-paper-plane"></i> Probar notificación
+          <i class="fas fa-paper-plane"></i> Probar notificación real
         </button>
-        <span class="test-hint">Envía una notificación de prueba con la configuración actual</span>
+        <span class="test-hint">Envía una notificación REAL a tu dispositivo ahora mismo</span>
       </div>
 
       <!-- Panel FCM — Notificaciones en celular -->

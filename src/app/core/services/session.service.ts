@@ -18,6 +18,7 @@ import { Injectable, NgZone, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Subject, interval, Subscription } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { ConfigService } from './config.service';
 
 import { ConfigService } from './config.service';
 
@@ -37,6 +38,11 @@ export class SessionService implements OnDestroy {
 
   /** Segundos antes del cierre en que se muestra la advertencia */
   private readonly ADVERTENCIA_SEG = 60;
+
+  /** Tiempo total de inactividad en segundos (leído desde ConfigService) */
+  private get TIEMPO_INACTIVIDAD_SEG(): number {
+    return this.configService.config.tiempoCierreAutomatico * 60;
+  }
 
   // ─── Estado ───────────────────────────────────────────────────────────────
 

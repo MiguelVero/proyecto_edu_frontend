@@ -7,6 +7,7 @@ import { OrdenService } from '../../../../core/services/orden.service';
 import { DoctorService } from '../../../../core/services/doctor.service';
 import { ServicioService } from '../../../../core/services/servicio.service';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { ConfigService } from '../../../../core/services/config.service';
 import Swal from 'sweetalert2';
 import { SearchableSelectComponent } from '../../../../shared/components/searchable-select/searchable-select.component';
 import { ImagenPipe } from '../../../../shared/pipes/imagen.pipe';
@@ -38,7 +39,8 @@ export class OrdenFormComponent implements OnInit {
     private servicioService: ServicioService,
     private route: ActivatedRoute,
     private router: Router,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private configService: ConfigService
   ) {
     this.ordenForm = this.fb.group({
       doctor_id: ['', Validators.required],
@@ -319,6 +321,8 @@ onFileSelected(event: any) {
 
   /**
    * Programa notificaciones para la orden si tiene fecha/hora límite.
+   * - A la hora exacta de vencimiento
+   * - Con la anticipación configurada en Configuración (ej: 30 min, 1 h)
    * Muestra un toast informativo con el resultado.
    */
   private programarNotificacionSiCorresponde(orden: any): void {
@@ -328,6 +332,14 @@ onFileSelected(event: any) {
     this.notificationService.solicitarPermiso().then(tienePermiso => {
       if (!tienePermiso) {
         console.warn('⚠️ Sin permiso para notificaciones — no se programará alerta');
+        Swal.fire({
+          icon: 'warning',
+          title: 'Notificaciones bloqueadas',
+          html: `Para recibir alertas en tu celular, permite las notificaciones en la configuración del navegador.<br><small style="color:#64748b">Configuración → Privacidad → Notificaciones</small>`,
+          confirmButtonColor: '#6366f1',
+          confirmButtonText: 'Entendido',
+          toast: false
+        });
         return;
       }
 
@@ -343,12 +355,19 @@ onFileSelected(event: any) {
 
       if (resultado.programadas > 0) {
         console.log(`🔔 ${resultado.mensaje}`);
+
+        // Obtener anticipación configurada para mostrar en el toast
+        const minutos = this.configService.config.tiempoNotificacionAnticipada;
+        const anticipacionTexto = minutos < 60
+          ? `${minutos} min`
+          : `${Math.floor(minutos / 60)} h`;
+
         // Toast no bloqueante
         const Toast = Swal.mixin({
           toast: true,
           position: 'bottom-end',
           showConfirmButton: false,
-          timer: 4000,
+          timer: 5000,
           timerProgressBar: true,
           didOpen: (toast) => {
             toast.addEventListener('mouseenter', Swal.stopTimer);
@@ -356,9 +375,11 @@ onFileSelected(event: any) {
           }
         });
         Toast.fire({
-          icon: 'info',
-          title: '🔔 Notificación programada',
-          text: resultado.mensaje
+          icon: 'success',
+          title: '🔔 Notificaciones programadas',
+          html: resultado.programadas === 2
+            ? `A la hora exacta y <strong>${anticipacionTexto} antes</strong>`
+            : resultado.mensaje
         });
       }
     });

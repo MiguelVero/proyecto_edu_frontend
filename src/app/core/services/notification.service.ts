@@ -22,8 +22,9 @@
  */
 
 import { Injectable, OnDestroy } from '@angular/core';
+import { ConfigService } from './config.service';
 import { Subscription } from 'rxjs';
-import Swal from 'sweetalert2';
+import { ConfigService } from './config.service';
 
 import { ConfigService, AppConfig } from './config.service';
 import { FirebaseMessagingService, FcmMessage } from './firebase-messaging.service';
@@ -316,11 +317,76 @@ export class NotificationService implements OnDestroy {
       2: 'Notificaciones programadas: hora exacta + anticipación',
       3: 'Notificaciones programadas: hora exacta + 30 min + anticipación'
     };
+    // Notificación 30 minutos antes (solo si es diferente a la anticipación y hay tiempo)
+    if (minutosAnticipacion !== 30) {
+      const msHasta30 = fechaHora.getTime() - ahora.getTime() - 30 * 60 * 1000;
+      if (msHasta30 > 0) {
+        const ok3 = this.programarNotificacion(
+          `${idBase}-30min`,
+          `⚠️ Orden ${orden.id_externo} — Vence en 30 min`,
+          cuerpo,
+          fechaHora,
+          30
+        );
+        if (ok3) programadas++;
+      }
+    }
 
-    return {
-      programadas,
-      mensaje: mensajes[programadas] ?? `${programadas} notificaciones programadas`
-    };
+    let mensaje: string;
+    if (programadas === 0) {
+      mensaje = 'No se pudo programar ninguna notificación';
+    } else if (programadas === 1) {
+      mensaje = 'Notificación programada para la hora exacta';
+    } else {
+      mensaje = `${programadas} notificaciones programadas (hora exacta + anticipación)`;
+    }
+
+    return { programadas, mensaje };
+  }
+
+  // ─── Persistencia ─────────────────────────────────────────────────────────
+
+  private persistirNotificaciones(): void {
+    try {
+      const datos = Array.from(this.notificacionesProgramadas.values()).map(n => ({
+        id: n.id,
+        titulo: n.titulo,
+        cuerpo: n.cuerpo,
+        fechaDisparo: n.fechaDisparo.toISOString()
+      }));
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(datos));
+    } catch (error) {
+      console.error('Error persistiendo notificaciones:', error);
+    }
+  }
+
+  private restaurarNotificacionesPendientes(): void {
+    try {
+      const raw = localStorage.getItem(this.STORAGE_KEY);
+      if (!raw) return;
+
+      const datos: Array<{ id: string; titulo: string; cuerpo: string; fechaDisparo: string }> =
+        JSON.parse(raw);
+
+      const ahora = new Date();
+      let restauradas = 0;
+
+      datos.forEach(d => {
+        const fechaDisparo = new Date(d.fechaDisparo);
+        if (fechaDisparo > ahora) {
+          // Restaurar: fechaDisparo ya es el momento exacto de disparo
+          this.programarNotificacion(d.id, d.titulo, d.cuerpo, fechaDisparo, 0);
+          restauradas++;
+        }
+      });
+
+      if (restauradas > 0) {
+        console.log(`🔄 ${restauradas} notificación(es) restaurada(s) desde localStorage`);
+      }
+    } catch (error) {
+      console.error('Error restaurando notificaciones:', error);
+      localStorage.removeItem(this.STORAGE_KEY);
+    }
   }
 
   // ─── Estado ───────────────────────────────────────────────────────────────
