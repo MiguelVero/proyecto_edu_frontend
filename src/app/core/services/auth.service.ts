@@ -5,6 +5,7 @@ import { Observable, BehaviorSubject, of } from 'rxjs';
 import { tap, catchError, finalize, timeout } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import Swal from 'sweetalert2';
+import { ConfigService } from './config.service';
 
 @Injectable({
   providedIn: 'root'
@@ -18,12 +19,12 @@ export class AuthService {
   public authLoading$ = this.authLoadingSubject.asObservable();
   
   private inactivityTimer: any = null;
-  private readonly INACTIVITY_TIME = 5 * 60 * 1000;
   private userActivityEvents = ['click', 'mousemove', 'keydown', 'scroll', 'touchstart'];
 
   constructor(
     private http: HttpClient,
-    private router: Router
+    private router: Router,
+    private configService: ConfigService
   ) {
     this.loadStoredUser();
     this.initInactivityTimer();
@@ -115,9 +116,10 @@ export class AuthService {
     if (!this.isAuthenticated()) return;
     
     this.clearInactivityTimer();
+    const inactivityTime = this.configService.inactivityTimeMs;
     this.inactivityTimer = setTimeout(() => {
       this.onInactivityTimeout();
-    }, this.INACTIVITY_TIME);
+    }, inactivityTime);
   }
 
   private clearInactivityTimer() {
@@ -129,10 +131,14 @@ export class AuthService {
 
   private onInactivityTimeout() {
     console.log('⏰ Inactividad detectada - Cerrando sesión');
+    const minutos = this.configService.config.tiempoCierreAutomatico;
+    const tiempoTexto = minutos < 60
+      ? `${minutos} minutos`
+      : `${Math.floor(minutos / 60)} hora(s)`;
     
     Swal.fire({
       title: 'Sesión expirada por inactividad',
-      text: 'Has estado inactivo por más de 5 minutos. Por favor, inicia sesión nuevamente.',
+      text: `Has estado inactivo por más de ${tiempoTexto}. Por favor, inicia sesión nuevamente.`,
       icon: 'info',
       timer: 3000,
       showConfirmButton: false,

@@ -34,6 +34,9 @@
         <a routerLink="/reportes" routerLinkActive="active" class="nav-item" (click)="closeMenu()">
           <i class="fas fa-chart-bar"></i> Reportes
         </a>
+        <a routerLink="/configuracion" routerLinkActive="active" class="nav-item" (click)="closeMenu()">
+          <i class="fas fa-sliders-h"></i> Configuración
+        </a>
         <div class="nav-actions">
           <button class="theme-toggle" (click)="toggleTheme(); closeMenu()" title="Cambiar tema">
             <i class="fas" [ngClass]="{'fa-moon': currentTheme === 'dark', 'fa-sun': currentTheme === 'light'}"></i>

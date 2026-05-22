@@ -212,7 +212,8 @@ main {
   .nav-menu.open .nav-item:nth-child(3) { animation-delay: 0.15s; }
   .nav-menu.open .nav-item:nth-child(4) { animation-delay: 0.2s; }
   .nav-menu.open .nav-item:nth-child(5) { animation-delay: 0.25s; }
-  .nav-menu.open .nav-actions { animation: slideIn 0.3s ease 0.3s forwards; opacity: 0; transform: translateX(20px); }
+  .nav-menu.open .nav-item:nth-child(6) { animation-delay: 0.30s; }
+  .nav-menu.open .nav-actions { animation: slideIn 0.3s ease 0.35s forwards; opacity: 0; transform: translateX(20px); }
   
   @keyframes slideIn {
     to {
