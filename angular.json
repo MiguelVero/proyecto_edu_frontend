@@ -21,7 +21,8 @@
             "assets": [
               "src/favicon.ico",
               "src/assets",
-              { "glob": "service-worker.js", "input": "src", "output": "/" }
+              { "glob": "service-worker.js", "input": "src", "output": "/" },
+              { "glob": "manifest.json", "input": "src", "output": "/" }
             ],
             "styles": [
               "src/styles.css",

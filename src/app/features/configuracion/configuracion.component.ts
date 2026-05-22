@@ -11,6 +11,7 @@ import { Subscription } from 'rxjs';
 import Swal from 'sweetalert2';
 
 import { ConfigService, AppConfig } from '../../core/services/config.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-configuracion',
@@ -25,6 +26,15 @@ export class ConfiguracionComponent implements OnInit, OnDestroy {
   guardando = false;
   guardadoExitoso = false;
   private sub?: Subscription;
+
+  // Estado de permisos de notificación
+  get permisoNotificacion(): NotificationPermission {
+    return this.notificationService.estadoPermiso;
+  }
+
+  get swSoportado(): boolean {
+    return 'serviceWorker' in navigator;
+  }
 
   // Etiquetas legibles para los sliders
   readonly labelsCierre: Record<number, string> = {
@@ -50,7 +60,8 @@ export class ConfiguracionComponent implements OnInit, OnDestroy {
 
   constructor(
     private fb: FormBuilder,
-    private configService: ConfigService
+    private configService: ConfigService,
+    private notificationService: NotificationService
   ) {}
 
   ngOnInit(): void {
@@ -150,7 +161,35 @@ export class ConfiguracionComponent implements OnInit, OnDestroy {
     });
   }
 
-  probarNotificacion(): void {
+  async solicitarPermisoNotificacion(): Promise<void> {
+    const concedido = await this.notificationService.solicitarPermiso();
+    if (concedido) {
+      Swal.fire({
+        icon: 'success',
+        title: '✅ Permiso concedido',
+        text: 'Las notificaciones están activadas. Recibirás alertas en tu dispositivo.',
+        timer: 2500,
+        showConfirmButton: false,
+        toast: true,
+        position: 'top-end'
+      });
+    } else {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Permiso denegado',
+        html: `
+          <p>El navegador bloqueó las notificaciones.</p>
+          <p style="font-size:0.85rem;color:#64748b">
+            Para activarlas: haz clic en el candado 🔒 en la barra de direcciones
+            → Notificaciones → Permitir → Recarga la página.
+          </p>
+        `,
+        confirmButtonColor: '#6366f1'
+      });
+    }
+  }
+
+  async probarNotificacion(): Promise<void> {
     const cfg: AppConfig = this.form.value as AppConfig;
 
     if (!cfg.notificacionesPushHabilitadas) {
@@ -163,27 +202,42 @@ export class ConfiguracionComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Solicitar permiso si no se tiene
+    if (this.permisoNotificacion !== 'granted') {
+      await this.solicitarPermisoNotificacion();
+      if (this.permisoNotificacion !== 'granted') return;
+    }
+
     // Vibración de prueba
     if (cfg.vibracionHabilitada && 'vibrate' in navigator) {
       navigator.vibrate([200, 100, 200]);
     }
 
-    // Sonido de prueba (beep sintético con Web Audio API)
+    // Sonido de prueba
     if (cfg.sonidoHabilitado) {
       this.reproducirBeep();
     }
 
+    // Notificación REAL via Service Worker
+    this.notificationService.mostrarNotificacion(
+      '🔔 Notificación de prueba — Lab.Rosas',
+      `Anticipación configurada: ${this.formatMinutos(cfg.tiempoNotificacionAnticipada)}. ¡Las notificaciones funcionan correctamente!`,
+      'prueba-configuracion'
+    );
+
     Swal.fire({
       icon: 'success',
-      title: '🔔 Notificación de prueba',
+      title: '🔔 Notificación enviada',
       html: `
-        <p>Así se verá una notificación del sistema.</p>
+        <p>La notificación fue enviada a tu dispositivo.</p>
         <small style="color:#64748b">
           Anticipación configurada: <strong>${this.formatMinutos(cfg.tiempoNotificacionAnticipada)}</strong>
         </small>
       `,
       confirmButtonColor: '#6366f1',
-      confirmButtonText: 'Entendido'
+      confirmButtonText: 'Entendido',
+      timer: 3000,
+      timerProgressBar: true
     });
   }
 
