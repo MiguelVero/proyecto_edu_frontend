@@ -39,6 +39,9 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    // Registrar Service Worker al iniciar la app (independiente de la autenticación)
+    this.registrarServiceWorker();
+
     // Redirigir si el token es inválido después de la verificación
     this.authSubscription = this.authService.authLoading$.subscribe((loading) => {
       if (!loading) {
@@ -52,6 +55,23 @@ export class AppComponent implements OnInit, OnDestroy {
         }
       }
     });
+  }
+
+  /**
+   * Registra el Service Worker para notificaciones push en celular.
+   * Se ejecuta al iniciar la app, antes de la autenticación.
+   */
+  private async registrarServiceWorker(): Promise<void> {
+    if (!('serviceWorker' in navigator)) return;
+    try {
+      const existing = await navigator.serviceWorker.getRegistration('/');
+      if (!existing) {
+        await navigator.serviceWorker.register('/service-worker.js', { scope: '/' });
+        console.log('✅ Service Worker registrado desde AppComponent');
+      }
+    } catch (error) {
+      console.warn('⚠️ Error registrando Service Worker:', error);
+    }
   }
 
   ngOnDestroy() {

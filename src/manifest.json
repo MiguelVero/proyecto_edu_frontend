@@ -1,4 +1,8 @@
 {
+  "name": "Lab.Rosas — Gestión de Órdenes",
+  "short_name": "Lab.Rosas",
+  "description": "Sistema de gestión de órdenes de trabajo para laboratorio dental",
+  "start_url": "/ordenes",
   "name": "Lab.Rosas — Sistema de Órdenes",
   "short_name": "Lab.Rosas",
   "description": "Sistema de gestión de órdenes de laboratorio dental",
@@ -7,6 +11,7 @@
   "background_color": "#0f172a",
   "theme_color": "#6366f1",
   "orientation": "portrait-primary",
+  "lang": "es",
   "icons": [
     {
       "src": "/favicon.ico",
@@ -20,6 +25,8 @@
       "purpose": "any maskable"
     }
   ],
+  "categories": ["productivity", "business"],
+  "screenshots": []
   "categories": ["productivity", "medical"],
   "lang": "es",
   "dir": "ltr"

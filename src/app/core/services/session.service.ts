@@ -17,6 +17,14 @@ export interface EstadoSesion {
 export class SessionService implements OnDestroy {
 
   // ─── Configuración ────────────────────────────────────────────────────────
+  /**
+   * Tiempo total de inactividad antes de cerrar sesión (segundos).
+   * Se lee dinámicamente desde ConfigService en cada verificación.
+   */
+  private get TIEMPO_INACTIVIDAD_SEG(): number {
+    return this.configService.config.tiempoCierreAutomatico * 60;
+  }
+
   /** Segundos antes del cierre en que se muestra la advertencia */
   private readonly TIEMPO_ADVERTENCIA_SEG = 60; // 1 minuto de advertencia
 
