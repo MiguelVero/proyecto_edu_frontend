@@ -689,3 +689,159 @@
     padding: 16px;
   }
 }
+
+/* ── Panel FCM ──────────────────────────────────────────────────────────── */
+
+.fcm-panel {
+  margin-top: 16px;
+  background: var(--surf, #ffffff);
+  border: 1px solid var(--bor, #e2e8f0);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fcm-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.fcm-icon-wrap {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #f97316, #fb923c);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.fcm-panel-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fcm-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--txt, #0f172a);
+}
+
+.fcm-desc {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.fcm-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: #f1f5f9;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.fcm-badge-ok {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.fcm-badge-warn {
+  background: #fef9c3;
+  color: #ca8a04;
+}
+
+.fcm-badge-off {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.fcm-info {
+  font-size: 0.82rem;
+  color: #64748b;
+  background: #fef9c3;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.fcm-info code {
+  background: rgba(0,0,0,0.06);
+  padding: 1px 4px;
+  border-radius: 4px;
+  font-size: 0.78rem;
+}
+
+.fcm-token-info {
+  font-size: 0.82rem;
+  color: #16a34a;
+  background: #dcfce7;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-fcm {
+  background: linear-gradient(135deg, #f97316, #fb923c);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  align-self: flex-start;
+}
+
+.btn-fcm:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(249, 115, 22, 0.4);
+}
+
+.btn-fcm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Dark mode FCM */
+[data-theme="dark"] .fcm-panel {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+[data-theme="dark"] .fcm-title {
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] .fcm-info {
+  background: #2d2a1a;
+  border-color: #78716c;
+  color: #d4c89a;
+}
+
+[data-theme="dark"] .fcm-token-info {
+  background: #14532d;
+  border-color: #166534;
+  color: #86efac;
+}

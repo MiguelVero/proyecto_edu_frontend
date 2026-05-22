@@ -21,7 +21,8 @@
             "assets": [
               "src/favicon.ico",
               "src/assets",
-              { "glob": "service-worker.js", "input": "src", "output": "/" }
+              { "glob": "service-worker.js", "input": "src", "output": "/" },
+              { "glob": "firebase-messaging-sw.js", "input": "src", "output": "/" }
             ],
             "styles": [
               "src/styles.css",
@@ -30,7 +31,10 @@
             "scripts": [],
     "allowedCommonJsDependencies": [
       "sweetalert2",
-      "file-saver"
+      "file-saver",
+      "firebase",
+      "@firebase/app",
+      "@firebase/messaging"
     ]
           },
           "configurations": {

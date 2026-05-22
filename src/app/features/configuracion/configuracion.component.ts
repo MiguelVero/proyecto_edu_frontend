@@ -11,6 +11,8 @@ import { Subscription } from 'rxjs';
 import Swal from 'sweetalert2';
 
 import { ConfigService, AppConfig } from '../../core/services/config.service';
+import { NotificationService } from '../../core/services/notification.service';
+import { FirebaseMessagingService } from '../../core/services/firebase-messaging.service';
 
 @Component({
   selector: 'app-configuracion',
@@ -24,6 +26,7 @@ export class ConfiguracionComponent implements OnInit, OnDestroy {
   form!: FormGroup;
   guardando = false;
   guardadoExitoso = false;
+  solicitandoFcm = false;
   private sub?: Subscription;
 
   // Etiquetas legibles para los sliders
@@ -50,7 +53,9 @@ export class ConfiguracionComponent implements OnInit, OnDestroy {
 
   constructor(
     private fb: FormBuilder,
-    private configService: ConfigService
+    private configService: ConfigService,
+    public notificationService: NotificationService,
+    public fcmService: FirebaseMessagingService
   ) {}
 
   ngOnInit(): void {
@@ -150,6 +155,54 @@ export class ConfiguracionComponent implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * Solicita permiso de notificaciones y activa FCM para este dispositivo.
+   * Muestra el token FCM obtenido (útil para depuración).
+   */
+  async activarNotificacionesFcm(): Promise<void> {
+    this.solicitandoFcm = true;
+
+    try {
+      const token = await this.fcmService.solicitarPermisoYObtenerToken();
+
+      if (token) {
+        Swal.fire({
+          icon: 'success',
+          title: '✅ Notificaciones activadas',
+          html: `
+            <p>Este dispositivo recibirá notificaciones push incluso con el navegador cerrado.</p>
+            <details style="margin-top:1rem;text-align:left">
+              <summary style="cursor:pointer;color:#6366f1;font-size:0.85rem">Ver token FCM (para el backend)</summary>
+              <code style="font-size:0.7rem;word-break:break-all;display:block;margin-top:0.5rem;padding:0.5rem;background:#f1f5f9;border-radius:6px">${token}</code>
+            </details>
+          `,
+          confirmButtonColor: '#6366f1',
+          confirmButtonText: 'Entendido'
+        });
+      } else {
+        const estado = this.fcmService.estadoActual;
+        let mensaje = 'No se pudo obtener el token FCM.';
+
+        if (estado === 'no-permission') {
+          mensaje = 'Permiso de notificaciones denegado. Ve a la configuración del navegador y permite las notificaciones para este sitio.';
+        } else if (estado === 'unsupported') {
+          mensaje = 'Tu navegador no soporta notificaciones push. Usa Chrome, Firefox o Edge en Android.';
+        } else if (estado === 'error') {
+          mensaje = 'Error al inicializar Firebase. Verifica que la configuración Firebase sea correcta en los archivos de entorno.';
+        }
+
+        Swal.fire({
+          icon: 'warning',
+          title: '⚠️ No se pudo activar FCM',
+          text: mensaje,
+          confirmButtonColor: '#6366f1'
+        });
+      }
+    } finally {
+      this.solicitandoFcm = false;
+    }
+  }
+
   probarNotificacion(): void {
     const cfg: AppConfig = this.form.value as AppConfig;
 
@@ -172,6 +225,12 @@ export class ConfiguracionComponent implements OnInit, OnDestroy {
     if (cfg.sonidoHabilitado) {
       this.reproducirBeep();
     }
+
+    // Mostrar notificación nativa de prueba
+    this.notificationService.mostrarNotificacion(
+      '🔔 Notificación de prueba',
+      `Anticipación configurada: ${this.formatMinutos(cfg.tiempoNotificacionAnticipada)}`
+    );
 
     Swal.fire({
       icon: 'success',

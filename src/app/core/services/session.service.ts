@@ -1,7 +1,25 @@
+/**
+ * SessionService
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Monitorea la inactividad del usuario y cierra la sesión automáticamente.
+ *
+ * El tiempo de inactividad se lee desde ConfigService en tiempo real, por lo
+ * que cualquier cambio en la página de Configuración se aplica de inmediato
+ * sin necesidad de recargar la app.
+ *
+ * Flujo:
+ *   1. iniciar() → registra listeners de actividad + tick cada segundo
+ *   2. Cada segundo verifica cuánto tiempo lleva inactivo el usuario
+ *   3. Si supera (tiempoCierreAutomatico - ADVERTENCIA_SEG) → muestra modal
+ *   4. Si supera tiempoCierreAutomatico → cierra sesión y redirige a /login
+ */
+
 import { Injectable, NgZone, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Subject, interval, Subscription } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+
+import { ConfigService } from './config.service';
 
 export interface EstadoSesion {
   activa: boolean;
@@ -16,45 +34,38 @@ export interface EstadoSesion {
 export class SessionService implements OnDestroy {
 
   // ─── Configuración ────────────────────────────────────────────────────────
-  /** Tiempo total de inactividad antes de cerrar sesión (segundos) */
-  private readonly TIEMPO_INACTIVIDAD_SEG = 5 * 60; // 5 minutos
 
   /** Segundos antes del cierre en que se muestra la advertencia */
-  private readonly TIEMPO_ADVERTENCIA_SEG = 60; // 1 minuto de advertencia
+  private readonly ADVERTENCIA_SEG = 60;
 
   // ─── Estado ───────────────────────────────────────────────────────────────
+
   private ultimaActividad: number = Date.now();
-  private timerInactividad: any = null;
   private destroy$ = new Subject<void>();
   private tickSub?: Subscription;
 
   private estadoSubject = new BehaviorSubject<EstadoSesion>({
     activa: false,
     mostrarAdvertencia: false,
-    segundosRestantes: this.TIEMPO_ADVERTENCIA_SEG,
+    segundosRestantes: this.ADVERTENCIA_SEG,
     tiempoInactividad: 0
   });
 
   public estado$ = this.estadoSubject.asObservable();
 
   // ─── Eventos de actividad ─────────────────────────────────────────────────
+
   private readonly EVENTOS_ACTIVIDAD = [
-    'mousemove',
-    'mousedown',
-    'keypress',
-    'keydown',
-    'scroll',
-    'touchstart',
-    'touchmove',
-    'click',
-    'wheel'
+    'mousemove', 'mousedown', 'keypress', 'keydown',
+    'scroll', 'touchstart', 'touchmove', 'click', 'wheel'
   ];
 
   private boundResetHandler = this.registrarActividad.bind(this);
 
   constructor(
     private router: Router,
-    private ngZone: NgZone
+    private ngZone: NgZone,
+    private configService: ConfigService
   ) {}
 
   // ─── Ciclo de vida ────────────────────────────────────────────────────────
@@ -66,9 +77,9 @@ export class SessionService implements OnDestroy {
     this.detener(); // Limpiar cualquier estado previo
 
     this.ultimaActividad = Date.now();
-    this.actualizarEstado(false, this.TIEMPO_ADVERTENCIA_SEG);
+    this.actualizarEstado(false, this.ADVERTENCIA_SEG);
 
-    // Registrar listeners de actividad fuera de Angular para no disparar CD
+    // Registrar listeners fuera de Angular para no disparar change detection
     this.ngZone.runOutsideAngular(() => {
       this.EVENTOS_ACTIVIDAD.forEach(evento => {
         document.addEventListener(evento, this.boundResetHandler, { passive: true });
@@ -91,14 +102,10 @@ export class SessionService implements OnDestroy {
       document.removeEventListener(evento, this.boundResetHandler);
     });
 
-    if (this.timerInactividad) {
-      clearTimeout(this.timerInactividad);
-      this.timerInactividad = null;
-    }
-
     this.tickSub?.unsubscribe();
+    this.tickSub = undefined;
 
-    this.actualizarEstado(false, this.TIEMPO_ADVERTENCIA_SEG);
+    this.actualizarEstado(false, this.ADVERTENCIA_SEG);
     console.log('🛡️ Monitoreo de sesión detenido');
   }
 
@@ -113,10 +120,9 @@ export class SessionService implements OnDestroy {
   private registrarActividad(): void {
     this.ultimaActividad = Date.now();
 
-    // Si la advertencia estaba visible, ocultarla
     if (this.estadoSubject.value.mostrarAdvertencia) {
       this.ngZone.run(() => {
-        this.actualizarEstado(false, this.TIEMPO_ADVERTENCIA_SEG);
+        this.actualizarEstado(false, this.ADVERTENCIA_SEG);
       });
     }
   }
@@ -124,30 +130,29 @@ export class SessionService implements OnDestroy {
   private verificarInactividad(): void {
     const ahora = Date.now();
     const segundosInactivo = Math.floor((ahora - this.ultimaActividad) / 1000);
-    const segundosHastaCierre = this.TIEMPO_INACTIVIDAD_SEG - segundosInactivo;
+
+    // Leer tiempo configurable en tiempo real desde ConfigService
+    const tiempoTotalSeg = this.configService.config.tiempoCierreAutomatico * 60;
+    const segundosHastaCierre = tiempoTotalSeg - segundosInactivo;
 
     if (segundosHastaCierre <= 0) {
-      // Tiempo agotado → cerrar sesión
       this.ngZone.run(() => this.cerrarSesionPorInactividad());
       return;
     }
 
-    if (segundosHastaCierre <= this.TIEMPO_ADVERTENCIA_SEG) {
-      // Mostrar advertencia con cuenta regresiva
+    if (segundosHastaCierre <= this.ADVERTENCIA_SEG) {
       this.ngZone.run(() => {
         this.actualizarEstado(true, segundosHastaCierre);
       });
     } else if (this.estadoSubject.value.mostrarAdvertencia) {
-      // Ocultar advertencia si el usuario volvió a estar activo
       this.ngZone.run(() => {
-        this.actualizarEstado(false, this.TIEMPO_ADVERTENCIA_SEG);
+        this.actualizarEstado(false, this.ADVERTENCIA_SEG);
       });
     }
   }
 
   private actualizarEstado(mostrarAdvertencia: boolean, segundosRestantes: number): void {
-    const ahora = Date.now();
-    const tiempoInactividad = Math.floor((ahora - this.ultimaActividad) / 1000);
+    const tiempoInactividad = Math.floor((Date.now() - this.ultimaActividad) / 1000);
 
     this.estadoSubject.next({
       activa: true,
@@ -164,7 +169,7 @@ export class SessionService implements OnDestroy {
    */
   extenderSesion(): void {
     this.ultimaActividad = Date.now();
-    this.actualizarEstado(false, this.TIEMPO_ADVERTENCIA_SEG);
+    this.actualizarEstado(false, this.ADVERTENCIA_SEG);
     console.log('🔄 Sesión extendida por el usuario');
   }
 
@@ -177,7 +182,12 @@ export class SessionService implements OnDestroy {
   }
 
   private cerrarSesionPorInactividad(): void {
-    console.log('⏰ Sesión cerrada por inactividad');
+    const minutos = this.configService.config.tiempoCierreAutomatico;
+    const tiempoTexto = minutos < 60
+      ? `${minutos} minutos`
+      : `${Math.floor(minutos / 60)} hora(s)`;
+
+    console.log(`⏰ Sesión cerrada por inactividad (${tiempoTexto})`);
     this.detener();
     this.limpiarSesion();
   }
@@ -205,7 +215,8 @@ export class SessionService implements OnDestroy {
   }
 
   get tiempoHastaCierreSegundos(): number {
-    return Math.max(0, this.TIEMPO_INACTIVIDAD_SEG - this.tiempoInactividadSegundos);
+    const tiempoTotalSeg = this.configService.config.tiempoCierreAutomatico * 60;
+    return Math.max(0, tiempoTotalSeg - this.tiempoInactividadSegundos);
   }
 
   formatearTiempo(segundos: number): string {

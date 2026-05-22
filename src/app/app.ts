@@ -5,6 +5,7 @@ import { Subscription } from 'rxjs';
 import { AuthService } from './core/services/auth.service';
 import { SessionService } from './core/services/session.service';
 import { NotificationService } from './core/services/notification.service';
+import { FirebaseMessagingService } from './core/services/firebase-messaging.service';
 import { SessionTimeoutComponent } from './shared/components/session-timeout/session-timeout.component';
 
 @Component({
@@ -32,10 +33,19 @@ export class AppComponent implements OnInit, OnDestroy {
     private renderer: Renderer2,
     private router: Router,
     private sessionService: SessionService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private fcmService: FirebaseMessagingService
   ) {
     this.currentTheme = localStorage.getItem('theme') || 'dark';
     document.body.setAttribute('data-theme', this.currentTheme);
+
+    // Registrar el Service Worker principal
+    this.registrarServiceWorker();
+
+    // Inicializar Firebase en background (no bloquea el arranque)
+    this.fcmService.initialize().then(() => {
+      console.log('[App] Firebase Messaging inicializado');
+    });
   }
 
   ngOnInit() {
@@ -52,6 +62,16 @@ export class AppComponent implements OnInit, OnDestroy {
         }
       }
     });
+  }
+
+  private registrarServiceWorker(): void {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js').then(reg => {
+        console.log('[App] Service Worker registrado:', reg.scope);
+      }).catch(err => {
+        console.warn('[App] Error registrando Service Worker:', err);
+      });
+    }
   }
 
   ngOnDestroy() {
