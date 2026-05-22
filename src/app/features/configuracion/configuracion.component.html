@@ -231,6 +231,50 @@
         </button>
         <span class="test-hint">Envía una notificación REAL a tu dispositivo ahora mismo</span>
       </div>
+
+      <!-- Panel FCM — Notificaciones en celular -->
+      <div class="fcm-panel">
+        <div class="fcm-panel-header">
+          <div class="fcm-icon-wrap">
+            <i class="fas fa-mobile-alt"></i>
+          </div>
+          <div class="fcm-panel-info">
+            <span class="fcm-title">Notificaciones en celular (Firebase)</span>
+            <span class="fcm-desc">Recibe alertas incluso con el navegador cerrado</span>
+          </div>
+          <span class="fcm-badge"
+            [class.fcm-badge-ok]="fcmService.estaListo && notificationService.tokenFcm"
+            [class.fcm-badge-warn]="!fcmService.tieneConfigReal"
+            [class.fcm-badge-off]="fcmService.estadoActual === 'no-permission' || fcmService.estadoActual === 'error'">
+            <ng-container *ngIf="!fcmService.tieneConfigReal">⚠️ Sin configurar</ng-container>
+            <ng-container *ngIf="fcmService.tieneConfigReal && notificationService.tokenFcm">✅ Activo</ng-container>
+            <ng-container *ngIf="fcmService.tieneConfigReal && !notificationService.tokenFcm && fcmService.estadoActual !== 'error'">⭕ Inactivo</ng-container>
+            <ng-container *ngIf="fcmService.estadoActual === 'error'">❌ Error config</ng-container>
+          </span>
+        </div>
+
+        <p class="fcm-info" *ngIf="!fcmService.tieneConfigReal">
+          <i class="fas fa-info-circle"></i>
+          Para activar las notificaciones push en celular, reemplaza los valores
+          <code>PLACEHOLDER</code> en <code>src/environments/environment.prod.ts</code>
+          y <code>src/firebase-messaging-sw.js</code> con los datos reales de tu
+          proyecto Firebase (ver instrucciones en el PR).
+        </p>
+
+        <p class="fcm-token-info" *ngIf="notificationService.tokenFcm">
+          <i class="fas fa-check-circle"></i>
+          Token FCM registrado en este dispositivo. Las notificaciones push están activas.
+        </p>
+
+        <button
+          class="btn-fcm"
+          (click)="activarNotificacionesFcm()"
+          [disabled]="solicitandoFcm || !fcmService.tieneConfigReal"
+          type="button">
+          <i class="fas" [ngClass]="solicitandoFcm ? 'fa-spinner fa-spin' : 'fa-bell'"></i>
+          {{ solicitandoFcm ? 'Activando…' : notificationService.tokenFcm ? 'Renovar token FCM' : 'Activar en este dispositivo' }}
+        </button>
+      </div>
     </section>
 
     <!-- ── Sección: Contacto ───────────────────────────────────────────────── -->

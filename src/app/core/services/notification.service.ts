@@ -1,183 +1,153 @@
+/**
+ * NotificationService
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Gestiona todas las notificaciones de la aplicación:
+ *
+ *  • Notificaciones nativas del navegador (Notification API)
+ *  • Notificaciones push reales vía Firebase Cloud Messaging (FCM)
+ *  • Programación de alertas con setTimeout (foreground)
+ *  • Persistencia en localStorage para restaurar al recargar
+ *  • Integración con ConfigService para respetar preferencias del usuario
+ *
+ * Flujo para notificaciones en celular (background):
+ *   1. FirebaseMessagingService obtiene el token FCM del dispositivo
+ *   2. El token se envía al backend junto con la orden
+ *   3. El backend usa Firebase Admin SDK para enviar push al dispositivo
+ *   4. El SW de Firebase (firebase-messaging-sw.js) muestra la notificación
+ *      incluso con el navegador cerrado
+ *
+ * Flujo para notificaciones en foreground (app abierta):
+ *   1. programarNotificacion() usa setTimeout
+ *   2. Al dispararse, muestra Notification nativa + toast SweetAlert2
+ */
+
 import { Injectable, OnDestroy } from '@angular/core';
 import { ConfigService } from './config.service';
 import { Subscription } from 'rxjs';
 import { ConfigService } from './config.service';
 
-// ─── Interfaces ───────────────────────────────────────────────────────────────
+import { ConfigService, AppConfig } from './config.service';
+import { FirebaseMessagingService, FcmMessage } from './firebase-messaging.service';
 
-export interface OrdenProxima {
-  id: number | string;
-  doctor?: string;
-  servicio?: string;
-  fechaVencimiento: Date;
-}
+// ─── Interfaces públicas ─────────────────────────────────────────────────────
 
 export interface NotificacionProgramada {
   id: string;
   titulo: string;
   cuerpo: string;
-  /** Momento exacto en que se disparará (ya descontada la anticipación) */
+  /** Momento exacto en que se disparará (ya con anticipación aplicada) */
   fechaDisparo: Date;
   timerId?: any;
 }
 
-// ─── Service ──────────────────────────────────────────────────────────────────
+export interface ResultadoProgramacion {
+  programadas: number;
+  mensaje: string;
+}
+
+// ─── Constantes ──────────────────────────────────────────────────────────────
+
+const STORAGE_KEY = 'notificaciones_programadas';
 
 @Injectable({
   providedIn: 'root'
 })
 export class NotificationService implements OnDestroy {
 
-  private notificacionesProgramadas: Map<string, NotificacionProgramada> = new Map();
-  private readonly STORAGE_KEY = 'notificaciones_programadas';
-  private swRegistration: ServiceWorkerRegistration | null = null;
-  private configSub?: Subscription;
+  // ─── Estado ───────────────────────────────────────────────────────────────
 
-  constructor(private configService: ConfigService) {
-    this.inicializar();
+  private notificaciones = new Map<string, NotificacionProgramada>();
+  private config!: AppConfig;
+  private configSub?: Subscription;
+  private fcmSub?: Subscription;
+
+  constructor(
+    private configService: ConfigService,
+    private fcmService: FirebaseMessagingService
+  ) {
+    // Mantener config actualizada en tiempo real
+    this.configSub = this.configService.config$.subscribe(cfg => {
+      this.config = cfg;
+    });
+
+    // Mostrar mensajes FCM en foreground como toast
+    this.fcmSub = this.fcmService.message$.subscribe(msg => {
+      if (msg) this.mostrarMensajeFcmEnForeground(msg);
+    });
+
+    // Restaurar notificaciones pendientes del localStorage
+    this.restaurarPendientes();
   }
 
   ngOnDestroy(): void {
     this.configSub?.unsubscribe();
-    this.cancelarTodasLasNotificaciones();
+    this.fcmSub?.unsubscribe();
   }
 
-  // ─── Inicialización ────────────────────────────────────────────────────────
-
-  private async inicializar(): Promise<void> {
-    await this.solicitarPermiso();
-    await this.registrarServiceWorker();
-    await this.registrarServiceWorker();
-    await this.solicitarPermiso();
-    this.restaurarNotificacionesPendientes();
-  }
-
-  // ─── Service Worker ────────────────────────────────────────────────────────
+  // ─── Permisos ─────────────────────────────────────────────────────────────
 
   /**
-   * Registra el Service Worker para notificaciones push reales en celular.
-   * El SW existe en src/service-worker.js y está configurado en angular.json.
-   */
-  private async registrarServiceWorker(): Promise<void> {
-    if (!('serviceWorker' in navigator)) {
-      console.warn('🔔 Service Worker no soportado en este navegador');
-      return;
-    }
-
-    try {
-      const existing = await navigator.serviceWorker.getRegistration('/');
-      if (existing) {
-        console.log('✅ Service Worker ya registrado:', existing.scope);
-        return;
-      }
-      const registration = await navigator.serviceWorker.register('/service-worker.js', {
-        scope: '/'
-      });
-      console.log('✅ Service Worker registrado:', registration.scope);
-    } catch (error) {
-      console.warn('⚠️ Error registrando Service Worker:', error);
-    }
-  }
-
-  /**
-   * Obtiene el registro activo del Service Worker.
-   */
-  private async getSwRegistration(): Promise<ServiceWorkerRegistration | null> {
-    if (!('serviceWorker' in navigator)) return null;
-    try {
-      const reg = await navigator.serviceWorker.getRegistration('/');
-      return reg ?? null;
-    } catch {
-      return null;
-  private async registrarServiceWorker(): Promise<void> {
-    if (!('serviceWorker' in navigator)) {
-      console.warn('[SW] Service Workers no soportados en este navegador');
-      return;
-    }
-    try {
-      const reg = await navigator.serviceWorker.register('/service-worker.js', { scope: '/' });
-      this.swRegistration = reg;
-      console.log('[SW] Service Worker registrado:', reg.scope);
-
-      // Esperar a que esté activo
-      if (reg.installing) {
-        await new Promise<void>(resolve => {
-          reg.installing!.addEventListener('statechange', function handler(e) {
-            if ((e.target as ServiceWorker).state === 'activated') {
-              reg.installing?.removeEventListener('statechange', handler);
-              resolve();
-            }
-          });
-        });
-      }
-
-      // Obtener registro activo si ya existe
-      if (!this.swRegistration) {
-        this.swRegistration = await navigator.serviceWorker.ready;
-      }
-    } catch (error) {
-      console.error('[SW] Error registrando Service Worker:', error);
-    }
-  }
-
-  // ─── Permisos ──────────────────────────────────────────────────────────────
-
-  /**
-   * Solicita permiso para notificaciones nativas del navegador/celular.
+   * Solicita permiso de notificaciones del navegador.
+   * También inicializa FCM y obtiene el token del dispositivo.
    */
   async solicitarPermiso(): Promise<boolean> {
     if (!('Notification' in window)) {
-      console.warn('🔔 Este navegador no soporta notificaciones');
+      console.warn('[Notif] Navegador no soporta notificaciones');
       return false;
     }
 
-    if (Notification.permission === 'granted') {
-      console.log('✅ Permiso de notificaciones ya concedido');
-      return true;
+    let permiso = Notification.permission;
+
+    if (permiso === 'default') {
+      permiso = await Notification.requestPermission();
     }
 
-    if (Notification.permission === 'denied') {
-      console.warn('❌ Permiso de notificaciones denegado por el usuario');
-      return false;
+    const concedido = permiso === 'granted';
+    console.log(`[Notif] Permiso de notificaciones: ${permiso}`);
+
+    // Inicializar FCM en paralelo (no bloquea)
+    if (concedido) {
+      this.fcmService.solicitarPermisoYObtenerToken().then(token => {
+        if (token) {
+          console.log('[Notif] Token FCM listo para enviar al backend');
+        }
+      });
     }
 
-    try {
-      const permiso = await Notification.requestPermission();
-      const concedido = permiso === 'granted';
-      console.log(`🔔 Permiso de notificaciones: ${permiso}`);
-      return concedido;
-      console.log(`🔔 Permiso de notificaciones: ${permiso}`);
-      return permiso === 'granted';
-    } catch (error) {
-      console.error('Error solicitando permiso de notificaciones:', error);
-      return false;
-    }
+    return concedido;
   }
 
   get tienePermiso(): boolean {
     return 'Notification' in window && Notification.permission === 'granted';
   }
 
-  get estadoPermiso(): NotificationPermission {
-    if (!('Notification' in window)) return 'denied';
+  get estadoPermiso(): NotificationPermission | 'no-soportado' {
+    if (!('Notification' in window)) return 'no-soportado';
     return Notification.permission;
   }
 
-  // ─── Programar notificación ────────────────────────────────────────────────
+  get tokenFcm(): string | null {
+    return this.fcmService.tokenActual;
+  }
+
+  get fcmListo(): boolean {
+    return this.fcmService.estaListo;
+  }
+
+  get fcmConfigurado(): boolean {
+    return this.fcmService.tieneConfigReal;
+  }
+
+  // ─── Programar notificación ───────────────────────────────────────────────
 
   /**
-   * Programa una notificación para una fecha/hora específica.
+   * Programa una notificación para dispararse en un momento futuro.
    *
    * @param id           Identificador único (ej: "orden-42-exacta")
    * @param titulo       Título de la notificación
    * @param cuerpo       Cuerpo del mensaje
    * @param fechaHora    Momento base (hora límite de la orden)
-   * @param minutosAntes Minutos de anticipación (0 = hora exacta)
-   * @param id           Identificador único (ej: "orden-42-exacta")
-   * @param titulo       Título de la notificación
-   * @param cuerpo       Cuerpo del mensaje
-   * @param fechaHora    Momento exacto en que debe dispararse (ya calculado)
-   * @param minutosAntes Minutos de anticipación (default 0 = hora exacta)
+   * @param minutosAntes Anticipación en minutos (0 = hora exacta)
    */
   programarNotificacion(
     id: string,
@@ -187,200 +157,82 @@ export class NotificationService implements OnDestroy {
     minutosAntes: number = 0
   ): boolean {
     if (!this.tienePermiso) {
-      console.warn('⚠️ Sin permiso para notificaciones');
+      console.warn('[Notif] Sin permiso para programar notificaciones');
       return false;
     }
 
-    // Calcular momento de disparo
-    const momentoDisparo = new Date(fechaHora.getTime() - minutosAntes * 60 * 1000);
-    const ahora = new Date();
-    const msHastaDisparo = momentoDisparo.getTime() - ahora.getTime();
+    const fechaDisparo = new Date(fechaHora.getTime() - minutosAntes * 60_000);
+    const msHasta = fechaDisparo.getTime() - Date.now();
 
-    if (msHastaDisparo <= 0) {
-      console.warn(`⚠️ La notificación "${id}" ya pasó (${momentoDisparo.toLocaleString()})`);
+    if (msHasta <= 0) {
+      console.warn(`[Notif] Fecha de disparo ya pasó para "${id}"`);
       return false;
     }
 
     // Cancelar si ya existe una con el mismo id
     this.cancelarNotificacion(id);
 
-    const notificacion: NotificacionProgramada = {
-      id,
-      titulo,
-      cuerpo,
-      fechaDisparo: momentoDisparo
-    };
+    const notif: NotificacionProgramada = { id, titulo, cuerpo, fechaDisparo };
 
-    // Programar con setTimeout (funciona hasta ~24.8 días)
-    notificacion.timerId = setTimeout(async () => {
-      await this.mostrarNotificacion(titulo, cuerpo, id);
-      this.notificacionesProgramadas.delete(id);
-      this.persistirNotificaciones();
-    }, msHastaDisparo);
+    notif.timerId = setTimeout(() => {
+      this.disparar(titulo, cuerpo, id);
+      this.notificaciones.delete(id);
+      this.persistir();
+    }, msHasta);
 
-    this.notificacionesProgramadas.set(id, notificacion);
-    this.persistirNotificaciones();
+    this.notificaciones.set(id, notif);
+    this.persistir();
 
-    const minutosRestantes = Math.round(msHastaDisparo / 60000);
-    console.log(`🔔 Notificación "${id}" programada en ${minutosRestantes} min (${momentoDisparo.toLocaleString()})`);
+    const min = Math.round(msHasta / 60_000);
+    console.log(`[Notif] ✅ "${id}" programada en ${min} min`);
     return true;
   }
 
   // ─── Mostrar notificación inmediata ───────────────────────────────────────
 
   /**
-   * Muestra una notificación inmediata.
-   * Usa el Service Worker si está disponible (funciona con navegador en segundo plano),
-   * con fallback a la Notification API directa.
+   * Muestra una notificación nativa del navegador de forma inmediata.
    */
-  async mostrarNotificacion(titulo: string, cuerpo: string, tag?: string): Promise<void> {
-    if (!this.tienePermiso) {
-      console.warn('⚠️ Sin permiso para mostrar notificaciones');
-      return;
-    }
+  mostrarNotificacion(titulo: string, cuerpo: string, tag?: string): void {
+    if (!this.tienePermiso) return;
 
-    const opciones: any = {
-    const opciones: NotificationOptions = {
-      body: cuerpo,
-      icon: '/favicon.ico',
-      badge: '/favicon.ico',
-      tag: tag || `notif-${Date.now()}`,
-      requireInteraction: false,
-      silent: false,
-      vibrate: [200, 100, 200],
-      data: { url: '/ordenes' }
-    };
-
-    // Intentar via Service Worker primero (funciona con app en segundo plano)
-    const swReg = await this.getSwRegistration();
-    if (swReg) {
-      try {
-        await swReg.showNotification(titulo, opciones);
-        console.log(`📣 Notificación via SW: "${titulo}"`);
-        return;
-      } catch (swError) {
-        console.warn('⚠️ Error via SW, usando Notification API directa:', swError);
-      }
-    }
-
-    // Fallback: Notification API directa
-      data: { url: '/ordenes' }
-    };
-
-    // Intentar via Service Worker primero (funciona con app cerrada)
-    if (this.swRegistration?.active) {
-      this.swRegistration.showNotification(titulo, opciones)
-        .then(() => console.log(`📣 Notificación SW mostrada: "${titulo}"`))
-        .catch(err => {
-          console.warn('SW notification failed, fallback to Notification API:', err);
-          this.mostrarNotificacionNativa(titulo, opciones);
-        });
-    } else {
-      // Fallback: Notification API directa
-      this.mostrarNotificacionNativa(titulo, opciones);
-    }
-
-    // Vibración
-    const cfg = this.configService.config;
-    if (cfg.vibracionHabilitada && 'vibrate' in navigator) {
-      navigator.vibrate([200, 100, 200]);
-    }
-
-    // Sonido
-    if (cfg.sonidoHabilitado) {
-      this.reproducirBeep();
-    }
-  }
-
-  private mostrarNotificacionNativa(titulo: string, opciones: NotificationOptions): void {
     try {
-      const notif = new Notification(titulo, opciones);
-      notif.onclick = () => {
-        window.focus();
-        notif.close();
-      };
-      console.log(`📣 Notificación directa: "${titulo}"`);
-      console.log(`📣 Notificación nativa mostrada: "${titulo}"`);
-    } catch (error) {
-      console.error('Error mostrando notificación nativa:', error);
+      const notif = new Notification(titulo, {
+        body: cuerpo,
+        icon: '/favicon.ico',
+        badge: '/favicon.ico',
+        tag: tag ?? `notif-${Date.now()}`,
+        requireInteraction: false,
+        silent: false
+      } as NotificationOptions);
+
+      notif.onclick = () => { window.focus(); notif.close(); };
+    } catch (err) {
+      console.error('[Notif] Error mostrando notificación nativa:', err);
     }
   }
 
-  // ─── Cancelar notificación ────────────────────────────────────────────────
+  // ─── Cancelar notificaciones ──────────────────────────────────────────────
 
   cancelarNotificacion(id: string): void {
-    const notif = this.notificacionesProgramadas.get(id);
+    const notif = this.notificaciones.get(id);
     if (notif?.timerId) {
       clearTimeout(notif.timerId);
-      this.notificacionesProgramadas.delete(id);
-      this.persistirNotificaciones();
-      console.log(`🗑️ Notificación "${id}" cancelada`);
+      this.notificaciones.delete(id);
+      this.persistir();
     }
   }
 
   cancelarTodasLasNotificaciones(): void {
-    this.notificacionesProgramadas.forEach((notif) => {
-      if (notif.timerId) clearTimeout(notif.timerId);
+    this.notificaciones.forEach(n => {
+      if (n.timerId) clearTimeout(n.timerId);
     });
-    this.notificacionesProgramadas.clear();
-    this.persistirNotificaciones();
-    console.log('🗑️ Todas las notificaciones canceladas');
+    this.notificaciones.clear();
+    this.persistir();
+    console.log('[Notif] Todas las notificaciones canceladas');
   }
 
-  // ─── Helper principal para órdenes ────────────────────────────────────────
-
-  /**
-   * Programa notificaciones para una orden de trabajo.
-   * - A la hora exacta de vencimiento
-   * - Con la anticipación configurada en ConfigService (ej: 30 min, 1 h, etc.)
-   *
-   * @returns { programadas, mensaje } con el resultado
-  // ─── Persistencia ─────────────────────────────────────────────────────────
-
-  private persistirNotificaciones(): void {
-    try {
-      const datos = Array.from(this.notificacionesProgramadas.values()).map(n => ({
-        id: n.id,
-        titulo: n.titulo,
-        cuerpo: n.cuerpo,
-        fechaHora: n.fechaHora.toISOString()
-      }));
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(datos));
-    } catch (error) {
-      console.error('Error persistiendo notificaciones:', error);
-    }
-  }
-
-  private restaurarNotificacionesPendientes(): void {
-    try {
-      const raw = localStorage.getItem(this.STORAGE_KEY);
-      if (!raw) return;
-
-      const datos: Array<{ id: string; titulo: string; cuerpo: string; fechaHora: string }> =
-        JSON.parse(raw);
-
-      const ahora = new Date();
-      let restauradas = 0;
-
-      datos.forEach(d => {
-        const fechaHora = new Date(d.fechaHora);
-        if (fechaHora > ahora) {
-          // Restaurar: la fechaHora ya es el momento de disparo (minutosAntes=0)
-          this.programarNotificacion(d.id, d.titulo, d.cuerpo, fechaHora, 0);
-          restauradas++;
-        }
-      });
-
-      if (restauradas > 0) {
-        console.log(`🔄 ${restauradas} notificación(es) restaurada(s) desde localStorage`);
-      }
-    } catch (error) {
-      console.error('Error restaurando notificaciones:', error);
-      localStorage.removeItem(this.STORAGE_KEY);
-    }
-  }
-
-  // ─── Helpers para órdenes ─────────────────────────────────────────────────
+  // ─── Helper para órdenes ──────────────────────────────────────────────────
 
   /**
    * Programa notificaciones para una orden de trabajo.
@@ -394,80 +246,76 @@ export class NotificationService implements OnDestroy {
     doctor?: { nombre: string };
     servicio?: { nombre: string };
     cliente_nombre?: string;
-  }): { programadas: number; mensaje: string } {
-
+  }): ResultadoProgramacion {
     if (!orden.fecha_limite) {
       return { programadas: 0, mensaje: 'La orden no tiene fecha límite' };
     }
 
     const horaStr = orden.hora_limite || '08:00';
-    const fechaHoraStr = `${orden.fecha_limite}T${horaStr}`;
-    const fechaHora = new Date(fechaHoraStr);
+    const fechaHora = new Date(`${orden.fecha_limite}T${horaStr}`);
 
     if (isNaN(fechaHora.getTime())) {
       return { programadas: 0, mensaje: 'Fecha/hora inválida' };
     }
 
-    const ahora = new Date();
-    if (fechaHora <= ahora) {
+    if (fechaHora <= new Date()) {
       return { programadas: 0, mensaje: 'La fecha/hora de la orden ya pasó' };
     }
 
-    // Leer anticipación desde ConfigService
-    const minutosAnticipacion = this.configService.config.tiempoNotificacionAnticipada;
-    const leadTexto = minutosAnticipacion < 60
-      ? `${minutosAnticipacion} min`
-      : `${Math.floor(minutosAnticipacion / 60)} h`;
-
-    const titulo = `📋 Orden ${orden.id_externo} — Vence hoy`;
-    const doctor = orden.doctor?.nombre || 'Doctor';
-    const servicio = orden.servicio?.nombre || 'Servicio';
+    const doctor = orden.doctor?.nombre ?? 'Doctor';
+    const servicio = orden.servicio?.nombre ?? 'Servicio';
     const cliente = orden.cliente_nombre ? ` | ${orden.cliente_nombre}` : '';
-    const cuerpoBase = `${doctor} — ${servicio}${cliente}`;
-
-    let programadas = 0;
+    const cuerpo = `${doctor} — ${servicio}${cliente}`;
     const idBase = `orden-${orden.id}`;
+    let programadas = 0;
 
-    // 1. Notificación a la hora exacta
+    // ── Notificación a la hora exacta ──
     const ok1 = this.programarNotificacion(
       `${idBase}-exacta`,
-      titulo,
-      `⏰ ¡Hora límite ahora! ${cuerpoBase}`,
+      `📋 Orden ${orden.id_externo} — ¡Hora límite!`,
+      `⏰ Vence AHORA: ${cuerpo}`,
       fechaHora,
       0
     );
     if (ok1) programadas++;
 
-    // 2. Notificación con anticipación configurada (si hay tiempo suficiente)
-    const msHastaAnticipacion = fechaHora.getTime() - ahora.getTime() - minutosAnticipacion * 60 * 1000;
-    if (msHastaAnticipacion > 0) {
+    // ── Notificación anticipada (según config) ──
+    const leadMin = this.config?.tiempoNotificacionAnticipada ?? 30;
+    const msHastaLead = fechaHora.getTime() - Date.now() - leadMin * 60_000;
+    if (msHastaLead > 0) {
+      const leadTexto = leadMin < 60
+        ? `${leadMin} min`
+        : `${Math.floor(leadMin / 60)} h`;
       const ok2 = this.programarNotificacion(
         `${idBase}-anticipada`,
         `⚠️ Orden ${orden.id_externo} — Vence en ${leadTexto}`,
-        cuerpoBase,
-    // Notificación con anticipación configurada
-    const minutosAnticipacion = this.configService.config.tiempoNotificacionAnticipada;
-    const msHastaAnticipacion = fechaHora.getTime() - ahora.getTime() - minutosAnticipacion * 60 * 1000;
-
-    if (msHastaAnticipacion > 0) {
-      const anticipacionTexto = minutosAnticipacion < 60
-        ? `${minutosAnticipacion} min`
-        : `${Math.floor(minutosAnticipacion / 60)} h`;
-
-      const ok2 = this.programarNotificacion(
-        `${idBase}-anticipada`,
-        `⚠️ Orden ${orden.id_externo} — Vence en ${anticipacionTexto}`,
         cuerpo,
         fechaHora,
-        minutosAnticipacion
+        leadMin
       );
       if (ok2) programadas++;
+    }
+
+    // ── Notificación 30 min antes (si la anticipación no es ya 30 min) ──
+    if (leadMin !== 30) {
+      const msHasta30 = fechaHora.getTime() - Date.now() - 30 * 60_000;
+      if (msHasta30 > 0) {
+        const ok3 = this.programarNotificacion(
+          `${idBase}-30min`,
+          `⚠️ Orden ${orden.id_externo} — Vence en 30 min`,
+          cuerpo,
+          fechaHora,
+          30
+        );
+        if (ok3) programadas++;
+      }
     }
 
     const mensajes: Record<number, string> = {
       0: 'No se pudo programar ninguna notificación',
       1: 'Notificación programada para la hora exacta',
-      2: `Notificaciones programadas: hora exacta y ${leadTexto} antes`
+      2: 'Notificaciones programadas: hora exacta + anticipación',
+      3: 'Notificaciones programadas: hora exacta + 30 min + anticipación'
     };
     // Notificación 30 minutos antes (solo si es diferente a la anticipación y hay tiempo)
     if (minutosAnticipacion !== 30) {
@@ -544,19 +392,78 @@ export class NotificationService implements OnDestroy {
   // ─── Estado ───────────────────────────────────────────────────────────────
 
   getNotificacionesPendientes(): NotificacionProgramada[] {
-    return Array.from(this.notificacionesProgramadas.values());
+    return Array.from(this.notificaciones.values());
   }
 
   tieneNotificacionParaOrden(ordenId: number | string): boolean {
     return (
-      this.notificacionesProgramadas.has(`orden-${ordenId}-exacta`) ||
-      this.notificacionesProgramadas.has(`orden-${ordenId}-anticipada`)
-      this.notificacionesProgramadas.has(`orden-${ordenId}-anticipada`) ||
-      this.notificacionesProgramadas.has(`orden-${ordenId}-30min`)
+      this.notificaciones.has(`orden-${ordenId}-exacta`) ||
+      this.notificaciones.has(`orden-${ordenId}-anticipada`) ||
+      this.notificaciones.has(`orden-${ordenId}-30min`)
     );
   }
 
-  // ─── Audio ────────────────────────────────────────────────────────────────
+  // ─── Privados ─────────────────────────────────────────────────────────────
+
+  /**
+   * Dispara la notificación: nativa + efectos + toast de respaldo.
+   */
+  private disparar(titulo: string, cuerpo: string, tag: string): void {
+    // Vibración
+    if (this.config?.vibracionHabilitada && 'vibrate' in navigator) {
+      navigator.vibrate([150, 80, 150]);
+    }
+
+    // Sonido
+    if (this.config?.sonidoHabilitado) {
+      this.reproducirBeep();
+    }
+
+    // Notificación nativa
+    this.mostrarNotificacion(titulo, cuerpo, tag);
+
+    // Toast SweetAlert2 como respaldo visual
+    Swal.fire({
+      icon: 'warning',
+      title: titulo,
+      html: `<span style="color:#f59e0b">${cuerpo}</span>`,
+      toast: true,
+      position: 'top-end',
+      timer: 7000,
+      showConfirmButton: false,
+      timerProgressBar: true
+    });
+  }
+
+  /**
+   * Muestra un mensaje FCM recibido en foreground como toast.
+   */
+  private mostrarMensajeFcmEnForeground(msg: FcmMessage): void {
+    // Vibración
+    if (this.config?.vibracionHabilitada && 'vibrate' in navigator) {
+      navigator.vibrate([200, 100, 200]);
+    }
+
+    // Sonido
+    if (this.config?.sonidoHabilitado) {
+      this.reproducirBeep();
+    }
+
+    // Notificación nativa
+    this.mostrarNotificacion(msg.title, msg.body, msg.tag);
+
+    // Toast visual
+    Swal.fire({
+      icon: 'info',
+      title: msg.title,
+      html: `<span>${msg.body}</span>`,
+      toast: true,
+      position: 'top-end',
+      timer: 8000,
+      showConfirmButton: false,
+      timerProgressBar: true
+    });
+  }
 
   private reproducirBeep(): void {
     try {
@@ -573,6 +480,69 @@ export class NotificationService implements OnDestroy {
       osc.stop(ctx.currentTime + 0.5);
     } catch {
       // AudioContext puede estar bloqueado sin interacción previa
+    }
+  }
+
+  // ─── Persistencia ─────────────────────────────────────────────────────────
+
+  private persistir(): void {
+    try {
+      const datos = Array.from(this.notificaciones.values()).map(n => ({
+        id: n.id,
+        titulo: n.titulo,
+        cuerpo: n.cuerpo,
+        fechaDisparo: n.fechaDisparo.toISOString()
+      }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(datos));
+    } catch (err) {
+      console.error('[Notif] Error persistiendo notificaciones:', err);
+    }
+  }
+
+  private restaurarPendientes(): void {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+
+      const datos: Array<{
+        id: string;
+        titulo: string;
+        cuerpo: string;
+        fechaDisparo: string;
+      }> = JSON.parse(raw);
+
+      const ahora = new Date();
+      let restauradas = 0;
+
+      datos.forEach(d => {
+        const fechaDisparo = new Date(d.fechaDisparo);
+        if (fechaDisparo > ahora) {
+          const msHasta = fechaDisparo.getTime() - ahora.getTime();
+          const notif: NotificacionProgramada = {
+            id: d.id,
+            titulo: d.titulo,
+            cuerpo: d.cuerpo,
+            fechaDisparo
+          };
+          notif.timerId = setTimeout(() => {
+            this.disparar(d.titulo, d.cuerpo, d.id);
+            this.notificaciones.delete(d.id);
+            this.persistir();
+          }, msHasta);
+          this.notificaciones.set(d.id, notif);
+          restauradas++;
+        }
+      });
+
+      if (restauradas > 0) {
+        console.log(`[Notif] 🔄 ${restauradas} notificación(es) restaurada(s)`);
+      }
+
+      // Limpiar entradas expiradas del storage
+      this.persistir();
+    } catch (err) {
+      console.error('[Notif] Error restaurando notificaciones:', err);
+      localStorage.removeItem(STORAGE_KEY);
     }
   }
 }
