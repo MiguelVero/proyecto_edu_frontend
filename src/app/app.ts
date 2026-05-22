@@ -3,6 +3,9 @@ import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AuthService } from './core/services/auth.service';
+import { SessionService } from './core/services/session.service';
+import { NotificationService } from './core/services/notification.service';
+import { SessionTimeoutComponent } from './shared/components/session-timeout/session-timeout.component';
 
 @Component({
   selector: 'app-root',
@@ -11,7 +14,8 @@ import { AuthService } from './core/services/auth.service';
     CommonModule,
     RouterOutlet,
     RouterLink,
-    RouterLinkActive
+    RouterLinkActive,
+    SessionTimeoutComponent
   ],
   templateUrl: './app.html',
   styleUrls: ['./app.css']
@@ -26,7 +30,9 @@ export class AppComponent implements OnInit, OnDestroy {
   constructor(
     public authService: AuthService,
     private renderer: Renderer2,
-    private router: Router
+    private router: Router,
+    private sessionService: SessionService,
+    private notificationService: NotificationService
   ) {
     this.currentTheme = localStorage.getItem('theme') || 'dark';
     document.body.setAttribute('data-theme', this.currentTheme);
@@ -35,14 +41,22 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnInit() {
     // Redirigir si el token es inválido después de la verificación
     this.authSubscription = this.authService.authLoading$.subscribe((loading) => {
-      if (!loading && !this.authService.isAuthenticated() && this.router.url !== '/login') {
-        this.router.navigate(['/login']);
+      if (!loading) {
+        if (this.authService.isAuthenticated()) {
+          // Usuario autenticado → iniciar monitoreo de sesión y solicitar permisos
+          this.sessionService.iniciar();
+          this.notificationService.solicitarPermiso();
+        } else if (this.router.url !== '/login') {
+          this.sessionService.detener();
+          this.router.navigate(['/login']);
+        }
       }
     });
   }
 
   ngOnDestroy() {
     this.authSubscription?.unsubscribe();
+    this.sessionService.detener();
     // Asegurarse de restaurar el scroll si el componente se destruye con el menú abierto
     if (this.menuOpen) {
       this.restoreBodyScroll();

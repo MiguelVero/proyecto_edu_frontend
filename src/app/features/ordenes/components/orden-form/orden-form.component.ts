@@ -6,6 +6,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { OrdenService } from '../../../../core/services/orden.service';
 import { DoctorService } from '../../../../core/services/doctor.service';
 import { ServicioService } from '../../../../core/services/servicio.service';
+import { NotificationService } from '../../../../core/services/notification.service';
 import Swal from 'sweetalert2';
 import { SearchableSelectComponent } from '../../../../shared/components/searchable-select/searchable-select.component';
 import { ImagenPipe } from '../../../../shared/pipes/imagen.pipe';
@@ -36,7 +37,8 @@ export class OrdenFormComponent implements OnInit {
     private doctorService: DoctorService,
     private servicioService: ServicioService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private notificationService: NotificationService
   ) {
     this.ordenForm = this.fb.group({
       doctor_id: ['', Validators.required],
@@ -250,12 +252,13 @@ onFileSelected(event: any) {
           formData.append('imagen_referencia', this.imagenSeleccionada);
           
           this.ordenService.actualizarOrdenConImagen(this.ordenId, formData).subscribe({
-            next: () => {
+            next: (ordenActualizada: any) => {
               this.subiendoImagen = false;
+              this.programarNotificacionSiCorresponde(ordenActualizada || { ...formValue, id: this.ordenId });
               Swal.fire('¡Éxito!', 'Orden actualizada correctamente', 'success');
               this.router.navigate(['/ordenes']);
             },
-            error: (error) => {
+            error: (error: any) => {
               this.subiendoImagen = false;
               console.error('Error actualizando orden:', error);
               Swal.fire('Error', 'No se pudo actualizar la orden', 'error');
@@ -263,12 +266,13 @@ onFileSelected(event: any) {
           });
         } else {
           this.ordenService.actualizarOrden(this.ordenId, updateData).subscribe({
-            next: () => {
+            next: (ordenActualizada: any) => {
               this.subiendoImagen = false;
+              this.programarNotificacionSiCorresponde(ordenActualizada || { ...formValue, id: this.ordenId });
               Swal.fire('¡Éxito!', 'Orden actualizada correctamente', 'success');
               this.router.navigate(['/ordenes']);
             },
-            error: (error) => {
+            error: (error: any) => {
               this.subiendoImagen = false;
               console.error('Error actualizando orden:', error);
               Swal.fire('Error', 'No se pudo actualizar la orden', 'error');
@@ -289,12 +293,13 @@ onFileSelected(event: any) {
         }
         
         this.ordenService.crearOrdenConImagen(formData).subscribe({
-          next: () => {
+          next: (ordenCreada: any) => {
             this.subiendoImagen = false;
+            this.programarNotificacionSiCorresponde(ordenCreada || formValue);
             Swal.fire('¡Éxito!', 'Orden creada correctamente', 'success');
             this.router.navigate(['/ordenes']);
           },
-          error: (error) => {
+          error: (error: any) => {
             this.subiendoImagen = false;
             console.error('Error creando orden:', error);
             Swal.fire('Error', 'No se pudo crear la orden', 'error');
@@ -310,5 +315,52 @@ onFileSelected(event: any) {
       });
       Swal.fire('Error', 'Por favor complete todos los campos requeridos', 'error');
     }
+  }
+
+  /**
+   * Programa notificaciones para la orden si tiene fecha/hora límite.
+   * Muestra un toast informativo con el resultado.
+   */
+  private programarNotificacionSiCorresponde(orden: any): void {
+    if (!orden?.fecha_limite) return;
+
+    // Solicitar permiso si aún no se tiene
+    this.notificationService.solicitarPermiso().then(tienePermiso => {
+      if (!tienePermiso) {
+        console.warn('⚠️ Sin permiso para notificaciones — no se programará alerta');
+        return;
+      }
+
+      const resultado = this.notificationService.programarNotificacionOrden({
+        id: orden.id ?? orden.id_externo ?? 'nueva',
+        id_externo: orden.id_externo ?? `#${orden.id}`,
+        fecha_limite: orden.fecha_limite,
+        hora_limite: orden.hora_limite,
+        doctor: orden.doctor,
+        servicio: orden.servicio,
+        cliente_nombre: orden.cliente_nombre
+      });
+
+      if (resultado.programadas > 0) {
+        console.log(`🔔 ${resultado.mensaje}`);
+        // Toast no bloqueante
+        const Toast = Swal.mixin({
+          toast: true,
+          position: 'bottom-end',
+          showConfirmButton: false,
+          timer: 4000,
+          timerProgressBar: true,
+          didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer);
+            toast.addEventListener('mouseleave', Swal.resumeTimer);
+          }
+        });
+        Toast.fire({
+          icon: 'info',
+          title: '🔔 Notificación programada',
+          text: resultado.mensaje
+        });
+      }
+    });
   }
 }
